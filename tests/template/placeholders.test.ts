@@ -10,7 +10,12 @@ import {
   shade,
 } from '../../src/services/template/placeholders.js';
 
-const options = { serverName: 'Pixel Pals', brandColor: '#ff0000', ownerId: '42', ownerName: 'dana' };
+const options = {
+  serverName: 'Pixel Pals',
+  brandColor: '#ff0000',
+  ownerId: '42',
+  ownerName: 'dana',
+};
 
 describe('placeholders', () => {
   it('finds placeholders with and without args', () => {
@@ -22,9 +27,9 @@ describe('placeholders', () => {
 
   it('renders customer values and leaves references / unknowns intact', () => {
     const values = customerValues(options, 'Pro', new Date('2026-01-01'));
-    expect(renderString('{{serverName}} by {{ownerMention}} ({{tierName}}, {{year}})', values)).toBe(
-      'Pixel Pals by <@42> (Pro, 2026)',
-    );
+    expect(
+      renderString('{{serverName}} by {{ownerMention}} ({{tierName}}, {{year}})', values),
+    ).toBe('Pixel Pals by <@42> (Pro, 2026)');
     expect(renderString('{{channel:rules}} {{user}}', values)).toBe('{{channel:rules}} {{user}}');
   });
 
@@ -54,7 +59,9 @@ describe('placeholders', () => {
 
   it('renders channel and role references, falling back gracefully', () => {
     const ids = { channels: { rules: '111' }, roles: { mod: '222' } };
-    expect(renderReferences('See {{channel:rules}}, ask {{role:mod}}', ids)).toBe('See <#111>, ask <@&222>');
+    expect(renderReferences('See {{channel:rules}}, ask {{role:mod}}', ids)).toBe(
+      'See <#111>, ask <@&222>',
+    );
     expect(renderReferences('{{channel:gone}} {{role:gone}}', ids)).toBe('#gone @gone');
   });
 });

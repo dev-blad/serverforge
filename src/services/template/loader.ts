@@ -56,7 +56,9 @@ export async function readTemplateFiles(dir: string): Promise<RawTemplateFile[]>
   try {
     files = await listFiles(dir);
   } catch (error) {
-    throw new TemplateError(`Cannot read templates directory "${dir}": ${(error as Error).message}`);
+    throw new TemplateError(
+      `Cannot read templates directory "${dir}": ${(error as Error).message}`,
+    );
   }
   const out: RawTemplateFile[] = [];
   const problems: string[] = [];
@@ -104,7 +106,8 @@ export function compileTemplates(
       const merged = resolveInheritance(id, rawById);
       const result = templateSchema.safeParse(merged);
       if (!result.success) {
-        for (const line of formatZodError(result.error, merged)) problems.push(`${file} (${id}): ${line}`);
+        for (const line of formatZodError(result.error, merged))
+          problems.push(`${file} (${id}): ${line}`);
         continue;
       }
       const semantic = validateSemantics(result.data);
@@ -137,6 +140,9 @@ export function compileTemplates(
   return templates;
 }
 
-export async function loadTemplates(dir: string, options?: CompileOptions): Promise<Map<string, Template>> {
+export async function loadTemplates(
+  dir: string,
+  options?: CompileOptions,
+): Promise<Map<string, Template>> {
   return compileTemplates(await readTemplateFiles(dir), options);
 }

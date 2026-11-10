@@ -6,11 +6,7 @@ import {
   type ChannelSpec,
   type Template,
 } from './schema.js';
-import {
-  CUSTOMER_PLACEHOLDERS,
-  RUNTIME_PLACEHOLDERS,
-  findPlaceholders,
-} from './placeholders.js';
+import { CUSTOMER_PLACEHOLDERS, RUNTIME_PLACEHOLDERS, findPlaceholders } from './placeholders.js';
 
 export const DISCORD_LIMITS = {
   roles: 250,
@@ -131,7 +127,9 @@ export function validateSemantics(template: Template): string[] {
     const entry = channels.get(key);
     if (!entry) errors.push(`${where}: unknown channel "${key}"`);
     else if (!allowed.includes(entry.kind)) {
-      errors.push(`${where}: channel "${key}" is a ${entry.kind}, expected ${allowed.join(' or ')}`);
+      errors.push(
+        `${where}: channel "${key}" is a ${entry.kind}, expected ${allowed.join(' or ')}`,
+      );
     }
   };
 
@@ -156,17 +154,24 @@ export function validateSemantics(template: Template): string[] {
       ? `categories[${entry.categoryKey}].channels[${key}]`
       : `channels[${key}]`;
     if (spec.tags && spec.type !== 'forum') errors.push(`${where}: tags are only valid on forums`);
-    if ((spec.userLimit !== undefined || spec.bitrate !== undefined) && !['voice', 'stage'].includes(spec.type)) {
+    if (
+      (spec.userLimit !== undefined || spec.bitrate !== undefined) &&
+      !['voice', 'stage'].includes(spec.type)
+    ) {
       errors.push(`${where}: userLimit/bitrate are only valid on voice/stage channels`);
     }
   }
 
   // Limits
   if (template.roles.length > DISCORD_LIMITS.roles) {
-    errors.push(`roles: ${template.roles.length} roles exceeds Discord's limit of ${DISCORD_LIMITS.roles}`);
+    errors.push(
+      `roles: ${template.roles.length} roles exceeds Discord's limit of ${DISCORD_LIMITS.roles}`,
+    );
   }
   if (channels.size > DISCORD_LIMITS.channels) {
-    errors.push(`channels: ${channels.size} channels exceeds Discord's limit of ${DISCORD_LIMITS.channels}`);
+    errors.push(
+      `channels: ${channels.size} channels exceeds Discord's limit of ${DISCORD_LIMITS.channels}`,
+    );
   }
 
   // Community
@@ -189,7 +194,8 @@ export function validateSemantics(template: Template): string[] {
   // Messages
   const messageKeys = new Set<string>();
   for (const message of template.messages) {
-    if (messageKeys.has(message.key)) errors.push(`messages[${message.key}]: duplicate message key`);
+    if (messageKeys.has(message.key))
+      errors.push(`messages[${message.key}]: duplicate message key`);
     messageKeys.add(message.key);
     checkChannel(message.channel, `messages[${message.key}].channel`, TEXT_LIKE);
     if (!message.content && message.embeds.length === 0) {
@@ -211,11 +217,15 @@ export function validateSemantics(template: Template): string[] {
   if (m.buttonRoles) {
     const panelKeys = new Set<string>();
     for (const panel of m.buttonRoles.panels) {
-      if (panelKeys.has(panel.key)) errors.push(`modules.buttonRoles.panels[${panel.key}]: duplicate key`);
+      if (panelKeys.has(panel.key))
+        errors.push(`modules.buttonRoles.panels[${panel.key}]: duplicate key`);
       panelKeys.add(panel.key);
       checkChannel(panel.channel, `modules.buttonRoles.panels[${panel.key}].channel`, TEXT_LIKE);
       for (const button of panel.buttons) {
-        checkRole(button.role, `modules.buttonRoles.panels[${panel.key}].buttons[${button.key}].role`);
+        checkRole(
+          button.role,
+          `modules.buttonRoles.panels[${panel.key}].buttons[${button.key}].role`,
+        );
       }
     }
   }

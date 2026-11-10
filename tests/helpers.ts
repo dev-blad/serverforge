@@ -1,11 +1,16 @@
 import type { RawTemplateFile } from '../src/services/template/loader.js';
 
-export function rawFile(raw: Record<string, unknown> & { id: string }, file?: string): RawTemplateFile {
+export function rawFile(
+  raw: Record<string, unknown> & { id: string },
+  file?: string,
+): RawTemplateFile {
   return { file: file ?? `${raw.id}.yaml`, raw: raw };
 }
 
 /** A tiny but valid base template. */
-export function miniTemplate(overrides: Record<string, unknown> = {}): Record<string, unknown> & { id: string } {
+export function miniTemplate(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> & { id: string } {
   return {
     id: 'mini',
     name: 'Mini',

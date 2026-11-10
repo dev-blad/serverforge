@@ -10,7 +10,10 @@ import { summarizeTemplate } from '../src/services/template/registry.js';
 import { TemplateError } from '../src/errors.js';
 
 const dirFlag = process.argv.indexOf('--dir');
-const dir = (dirFlag >= 0 ? process.argv[dirFlag + 1] : undefined) ?? process.env['TEMPLATES_DIR'] ?? './templates';
+const dir =
+  (dirFlag >= 0 ? process.argv[dirFlag + 1] : undefined) ??
+  process.env['TEMPLATES_DIR'] ??
+  './templates';
 
 try {
   const templates = await loadTemplates(dir);

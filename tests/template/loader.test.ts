@@ -1,10 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import path from 'node:path';
-import { compileTemplates, loadTemplates, parseTemplateText } from '../../src/services/template/loader.js';
-import { TemplateRegistry, renderTemplate, summarizeTemplate } from '../../src/services/template/registry.js';
+import {
+  compileTemplates,
+  loadTemplates,
+  parseTemplateText,
+} from '../../src/services/template/loader.js';
+import {
+  TemplateRegistry,
+  renderTemplate,
+  summarizeTemplate,
+} from '../../src/services/template/registry.js';
 import { miniTemplate, rawFile } from '../helpers.js';
 
-const compile = (...files: ReturnType<typeof rawFile>[]) => compileTemplates(files, { requireBaseTiers: false });
+const compile = (...files: ReturnType<typeof rawFile>[]) =>
+  compileTemplates(files, { requireBaseTiers: false });
 
 describe('template schema validation', () => {
   it('accepts a minimal template and applies defaults', () => {
@@ -17,13 +26,19 @@ describe('template schema validation', () => {
 
   it('fails fast with readable, key-based paths', () => {
     const bad = miniTemplate({
-      categories: [{ key: 'info', name: 'Info', channels: [{ key: 'welcome', name: 'w', type: 'txt' }] }],
+      categories: [
+        { key: 'info', name: 'Info', channels: [{ key: 'welcome', name: 'w', type: 'txt' }] },
+      ],
     });
-    expect(() => compile(rawFile(bad))).toThrow(/mini\.yaml \(mini\): categories\[info\]\.channels\[welcome\]\.type/);
+    expect(() => compile(rawFile(bad))).toThrow(
+      /mini\.yaml \(mini\): categories\[info\]\.channels\[welcome\]\.type/,
+    );
   });
 
   it('rejects unknown permissions and unknown fields', () => {
-    const bad = miniTemplate({ roles: [{ key: 'x', name: 'X', permissions: ['FlyPlanes'], colour: '#fff' }] });
+    const bad = miniTemplate({
+      roles: [{ key: 'x', name: 'X', permissions: ['FlyPlanes'], colour: '#fff' }],
+    });
     let message = '';
     try {
       compile(rawFile(bad));
@@ -62,25 +77,39 @@ describe('template schema validation', () => {
     expect(message).toMatch(/unknown placeholder \{\{serverNmae\}\}/);
     expect(message).toMatch(/messages\[m\]\.channel: unknown channel "nowhere"/);
     expect(message).toMatch(/\{\{channel:missing\}\} references unknown channel/);
-    expect(message).toMatch(/memberStats\.channel: channel "news" is a announcement, expected voice/);
+    expect(message).toMatch(
+      /memberStats\.channel: channel "news" is a announcement, expected voice/,
+    );
   });
 
   it('enforces Discord AutoMod rule limits', () => {
-    const rules = Array.from({ length: 2 }, (_, i) => ({ key: `s${i}`, name: `S${i}`, type: 'spam' }));
-    expect(() => compile(rawFile(miniTemplate({ modules: { automod: { rules } } })))).toThrow(/at most 1 "spam"/);
+    const rules = Array.from({ length: 2 }, (_, i) => ({
+      key: `s${i}`,
+      name: `S${i}`,
+      type: 'spam',
+    }));
+    expect(() => compile(rawFile(miniTemplate({ modules: { automod: { rules } } })))).toThrow(
+      /at most 1 "spam"/,
+    );
   });
 
   it('detects duplicate template ids and missing base tiers', () => {
-    expect(() => compile(rawFile(miniTemplate(), 'a.yaml'), rawFile(miniTemplate(), 'b.yaml'))).toThrow(
-      /duplicate template id "mini"/,
+    expect(() =>
+      compile(rawFile(miniTemplate(), 'a.yaml'), rawFile(miniTemplate(), 'b.yaml')),
+    ).toThrow(/duplicate template id "mini"/);
+    expect(() => compileTemplates([rawFile(miniTemplate())])).toThrow(
+      /Missing base template "starter"/,
     );
-    expect(() => compileTemplates([rawFile(miniTemplate())])).toThrow(/Missing base template "starter"/);
   });
 
   it('parses YAML errors with line numbers', () => {
-    expect(() => parseTemplateText('id: x\nroles: [\n', 'bad.yaml')).toThrow(/bad\.yaml:\d+:\d+: YAML syntax error/);
+    expect(() => parseTemplateText('id: x\nroles: [\n', 'bad.yaml')).toThrow(
+      /bad\.yaml:\d+:\d+: YAML syntax error/,
+    );
     expect(() => parseTemplateText('- a\n- b', 'list.yaml')).toThrow(/object at the top level/);
-    expect(() => parseTemplateText('name: x', 'noid.yaml')).toThrow(/missing required string field "id"/);
+    expect(() => parseTemplateText('name: x', 'noid.yaml')).toThrow(
+      /missing required string field "id"/,
+    );
     expect(parseTemplateText('{"id":"j"}', 'j.json')).toEqual({ id: 'j' });
   });
 
@@ -119,7 +148,9 @@ describe('shipped templates', () => {
     expect(pro.modules.verification?.enabled).toBe(true);
 
     // Elite upgrades announcements to a followable announcement channel and brands roles
-    const announcements = elite.categories.find((c) => c.key === 'info')!.channels.find((c) => c.key === 'announcements')!;
+    const announcements = elite.categories
+      .find((c) => c.key === 'info')!
+      .channels.find((c) => c.key === 'announcements')!;
     expect(announcements.type).toBe('announcement');
     expect(elite.roles.find((r) => r.key === 'owner')!.color).toBe('{{brandColor}}');
     expect(starter.roles.find((r) => r.key === 'owner')!.color).toBe('#F1C40F');

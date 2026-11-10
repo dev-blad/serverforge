@@ -164,7 +164,13 @@ modules:
           color: '{{brandColor}}'
           description: Choose which announcements you want to be pinged for.
         buttons:
-          - { key: announcements, role: ping-announcements, label: Announcements, emoji: '📣', style: primary }
+          - {
+              key: announcements,
+              role: ping-announcements,
+              label: Announcements,
+              emoji: '📣',
+              style: primary,
+            }
           - { key: events, role: ping-events, label: Events, emoji: '🎉', style: primary }
 
   logging:

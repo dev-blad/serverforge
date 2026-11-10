@@ -77,7 +77,7 @@ tests/                          vitest unit tests
       Prisma schema, Dockerfile, docker-compose, .env.example
 - [x] M2 — Template system: zod schema, loader, inheritance resolver, placeholder renderer,
       registry, validate-templates script, starter/pro/elite + one themed template, tests
-- [ ] M3 — License system: keygen, hashing, repository, activation/upgrade/revoke rules,
+- [x] M3 — License system: keygen, hashing, repository, activation/upgrade/revoke rules,
       rate limiter, keys CLI, payment webhook stub, tests
 - [ ] M4 — Builder: guild snapshot, planner (diff), preflight, queue with backoff, executor with
       progress + resource tracking, rollback, Discord gateway, tests with mocked guild

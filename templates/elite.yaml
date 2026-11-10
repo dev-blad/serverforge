@@ -42,7 +42,8 @@ roles:
     after: support
     color: '#9B59B6'
     hoist: true
-    permissions: [ViewChannel, SendMessages, ReadMessageHistory, ManageEvents, MuteMembers, MoveMembers]
+    permissions:
+      [ViewChannel, SendMessages, ReadMessageHistory, ManageEvents, MuteMembers, MoveMembers]
 
 categories:
   - key: stats
