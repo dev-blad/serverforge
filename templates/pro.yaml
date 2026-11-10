@@ -1,0 +1,204 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# ServerForge — Pro tier (extends Starter)
+# Adds: verification gate, self-assign button roles, logging, AutoMod, suggestions.
+# Only the differences from Starter are listed here.
+# ─────────────────────────────────────────────────────────────────────────────
+id: pro
+extends: starter
+name: Pro
+tier: pro
+version: 1
+description: Everything in Starter plus a verification gate, self-assign roles, mod/join logs, native AutoMod and a suggestions channel.
+
+# Verification gate: @everyone can no longer see channels by default — only #verify.
+# The Member role (granted by the Verify button) carries ViewChannel.
+everyone:
+  permissions:
+    - ReadMessageHistory
+    - AddReactions
+    - UseExternalEmojis
+    - UseApplicationCommands
+    - ChangeNickname
+    - CreateInstantInvite
+
+roles:
+  # Self-assign roles (appended below Member)
+  - key: pronoun-he
+    name: he/him
+  - key: pronoun-she
+    name: she/her
+  - key: pronoun-they
+    name: they/them
+  - key: pronoun-any
+    name: any pronouns
+  - key: region-na
+    name: North America
+  - key: region-sa
+    name: South America
+  - key: region-eu
+    name: Europe
+  - key: region-af
+    name: Africa
+  - key: region-as
+    name: Asia
+  - key: region-oc
+    name: Oceania
+  - key: ping-announcements
+    name: Announcement Pings
+    mentionable: true
+  - key: ping-events
+    name: Event Pings
+    mentionable: true
+
+categories:
+  - key: start
+    name: '✅ Start Here'
+    before: info
+    overwrites:
+      - role: everyone
+        allow: [ViewChannel, ReadMessageHistory]
+        deny: [SendMessages, AddReactions, CreatePublicThreads, CreatePrivateThreads]
+      # Verified members don't need to see the gate any more.
+      - role: member
+        deny: [ViewChannel]
+    channels:
+      - key: verify
+        name: verify
+        topic: 'Click the button below to verify and unlock {{serverName}}.'
+
+  - key: info
+    channels:
+      - key: get-roles
+        name: get-roles
+        after: rules
+        topic: 'Pick your pronouns, region and which pings you want.'
+
+  - key: community
+    channels:
+      - key: suggestions
+        name: suggestions
+        topic: 'Suggest improvements for {{serverName}}. One idea per message, please!'
+        slowmode: 60
+
+  - key: moderation
+    name: '🛡️ Moderation'
+    overwrites:
+      - role: everyone
+        deny: [ViewChannel]
+      - role: member
+        deny: [ViewChannel]
+      - role: moderator
+        allow: [ViewChannel, ReadMessageHistory]
+        deny: [SendMessages]
+    channels:
+      - key: mod-log
+        name: mod-log
+        topic: 'Automatic moderation log (message edits/deletes, bans, timeouts, AutoMod alerts).'
+      - key: join-leave
+        name: join-leave
+        topic: 'Automatic log of members joining and leaving.'
+
+messages:
+  - key: suggestions-howto
+    channel: suggestions
+    pin: true
+    embeds:
+      - title: '💡 How suggestions work'
+        color: '{{brandColor}}'
+        description: |-
+          Post **one idea per message** and the community can vote with 👍 / 👎.
+          Staff review popular suggestions regularly. Please search before posting duplicates!
+
+modules:
+  # Verification replaces auto-assigning Member on join (bots still get the Bots role).
+  autoRole:
+    memberRole: null
+
+  verification:
+    enabled: true
+    channel: verify
+    verifiedRole: member
+    buttonLabel: '✅ Verify me'
+    verifyExistingMembers: true
+    embed:
+      title: 'Welcome to {{serverName}}!'
+      color: '{{brandColor}}'
+      description: |-
+        To keep the community safe from spam and raids, please verify you're human.
+
+        Click **Verify me** below to unlock the rest of the server.
+        By verifying you agree to follow the server rules.
+
+  buttonRoles:
+    enabled: true
+    panels:
+      - key: pronouns
+        channel: get-roles
+        embed:
+          title: '🏷️ Pronouns'
+          color: '{{brandColor}}'
+          description: Click a button to add or remove a pronoun role. You can pick several.
+        buttons:
+          - { key: he, role: pronoun-he, label: he/him }
+          - { key: she, role: pronoun-she, label: she/her }
+          - { key: they, role: pronoun-they, label: they/them }
+          - { key: any, role: pronoun-any, label: any pronouns }
+      - key: regions
+        channel: get-roles
+        exclusive: true
+        embed:
+          title: '🌍 Region'
+          color: '{{brandColor}}'
+          description: Where are you based? Picking a new region replaces your old one.
+        buttons:
+          - { key: na, role: region-na, label: North America, emoji: '🌎' }
+          - { key: sa, role: region-sa, label: South America, emoji: '🌎' }
+          - { key: eu, role: region-eu, label: Europe, emoji: '🌍' }
+          - { key: af, role: region-af, label: Africa, emoji: '🌍' }
+          - { key: as, role: region-as, label: Asia, emoji: '🌏' }
+          - { key: oc, role: region-oc, label: Oceania, emoji: '🌏' }
+      - key: notifications
+        channel: get-roles
+        embed:
+          title: '🔔 Notifications'
+          color: '{{brandColor}}'
+          description: Choose which announcements you want to be pinged for.
+        buttons:
+          - { key: announcements, role: ping-announcements, label: Announcements, emoji: '📣', style: primary }
+          - { key: events, role: ping-events, label: Events, emoji: '🎉', style: primary }
+
+  logging:
+    enabled: true
+    modLog: mod-log
+    joinLeaveLog: join-leave
+
+  automod:
+    enabled: true
+    rules:
+      - key: preset-filter
+        name: 'ServerForge: Slurs & sexual content'
+        type: keywordPreset
+        presets: [slurs, sexualContent]
+        customMessage: That message was blocked by the server's content filter.
+        alertChannel: mod-log
+        exemptRoles: [moderator]
+      - key: spam
+        name: 'ServerForge: Spam'
+        type: spam
+        alertChannel: mod-log
+      - key: mention-spam
+        name: 'ServerForge: Mention spam'
+        type: mentionSpam
+        mentionLimit: 6
+        timeoutSeconds: 600
+        alertChannel: mod-log
+        exemptRoles: [moderator]
+      - key: invite-links
+        name: 'ServerForge: Invite links'
+        type: keyword
+        regex: ['(discord\.gg|discord(app)?\.com/invite)/[a-zA-Z0-9-]+']
+        customMessage: Invite links aren't allowed here.
+        alertChannel: mod-log
+        exemptRoles: [moderator]
+
+summaryChannel: mod-log

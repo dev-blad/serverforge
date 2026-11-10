@@ -75,7 +75,7 @@ tests/                          vitest unit tests
 - [x] M0 — PLAN.md
 - [x] M1 — Project scaffold: package.json, TS strict, eslint+prettier, vitest, pino, dotenv/config,
       Prisma schema, Dockerfile, docker-compose, .env.example
-- [ ] M2 — Template system: zod schema, loader, inheritance resolver, placeholder renderer,
+- [x] M2 — Template system: zod schema, loader, inheritance resolver, placeholder renderer,
       registry, validate-templates script, starter/pro/elite + one themed template, tests
 - [ ] M3 — License system: keygen, hashing, repository, activation/upgrade/revoke rules,
       rate limiter, keys CLI, payment webhook stub, tests
