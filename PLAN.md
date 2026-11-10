@@ -86,5 +86,5 @@ tests/                          vitest unit tests
 - [x] M6 — Feature modules: autoRole, verification, buttonRoles, logging, automod, tickets
       (+ transcripts), memberStats
 - [x] M7 — Other commands: /forge status|resync|capture, /help, owner-only /keys, deploy script
-- [ ] M8 — Docs: README (tiers, buyer guide, seller guide, Railway/Docker), TEMPLATES.md,
+- [x] M8 — Docs: README (tiers, buyer guide, seller guide, Railway/Docker), TEMPLATES.md,
       CHANGELOG.md, DECISIONS.md; final typecheck/lint/test pass
