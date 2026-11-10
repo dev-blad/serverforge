@@ -242,7 +242,15 @@ export class BuildExecutor {
 
       case 'orderRoles': {
         const ordered = action.keys.map((k) => ids.roles[k]).filter((id): id is string => !!id);
-        await q(() => gateway.orderRoles(ordered));
+        // Cosmetic: never fail a build because Discord refused to reorder.
+        try {
+          await q(() => gateway.orderRoles(ordered));
+        } catch (error) {
+          this.deps.logger.warn({ err: error, guildId }, 'could not order roles');
+          ctx.warnings.push(
+            "Roles were created but couldn't be put in order — drag them into place in Server Settings → Roles if you like.",
+          );
+        }
         return;
       }
 
@@ -299,7 +307,12 @@ export class BuildExecutor {
           if (parentId === undefined) continue;
           byParent[parentId] = keys.map((k) => ids.channels[k]).filter((id): id is string => !!id);
         }
-        await q(() => gateway.orderChannels(categoryIds, byParent));
+        try {
+          await q(() => gateway.orderChannels(categoryIds, byParent));
+        } catch (error) {
+          this.deps.logger.warn({ err: error, guildId }, 'could not order channels');
+          ctx.warnings.push("Channels were created but couldn't be put in order.");
+        }
         return;
       }
 

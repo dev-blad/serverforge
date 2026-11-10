@@ -127,6 +127,31 @@ export function toDiscordMessage(payload: MessagePayload): MessageCreateOptions 
   return options;
 }
 
+/**
+ * Compute new role positions so `orderedIds` sit directly below the bot's highest role in that
+ * order, followed by every other role below the bot in its current order. Only roles strictly
+ * below the bot are touched (Discord forbids moving anything at or above it), positions form a
+ * contiguous block, and only roles whose position actually changes are returned.
+ */
+export function computeRolePositions(
+  roles: readonly { id: string; position: number }[],
+  ctx: { everyoneId: string; botPosition: number },
+  orderedIds: readonly string[],
+): { role: string; position: number }[] {
+  const below = roles.filter((r) => r.id !== ctx.everyoneId && r.position < ctx.botPosition);
+  const belowIds = new Set(below.map((r) => r.id));
+  const first = orderedIds.filter((id) => belowIds.has(id));
+  const rest = below
+    .filter((r) => !first.includes(r.id))
+    .sort((a, b) => b.position - a.position)
+    .map((r) => r.id);
+  const desired = [...first, ...rest];
+  const current = new Map(below.map((r) => [r.id, r.position]));
+  return desired
+    .map((id, i) => ({ role: id, position: desired.length - i }))
+    .filter((u) => current.get(u.role) !== u.position);
+}
+
 /** GuildGateway backed by a live discord.js Guild. */
 export class DiscordGuildGateway implements GuildGateway {
   constructor(
@@ -172,18 +197,16 @@ export class DiscordGuildGateway implements GuildGateway {
   }
 
   async orderRoles(orderedIds: string[]): Promise<void> {
-    const me = await this.me();
-    const top = me.roles.highest.position;
-    const editable = orderedIds
-      .map((id) => this.guild.roles.cache.get(id))
-      .filter((r): r is NonNullable<typeof r> => !!r && r.editable && !r.managed);
-    if (editable.length === 0) return;
-    // Place the template roles directly below the bot's highest role, in template order.
-    const positions = editable.map((role, i) => ({
-      role: role.id,
-      position: Math.max(1, top - 1 - i),
-    }));
-    await this.guild.roles.setPositions(positions);
+    // Fresh data: right after creating roles, cached positions can be stale, and sending a
+    // position at/above the bot's own role makes Discord answer "Missing Permissions".
+    const roles = await this.guild.roles.fetch(undefined, { force: true });
+    const me = await this.guild.members.fetchMe({ force: true });
+    const updates = computeRolePositions(
+      [...roles.values()].map((r) => ({ id: r.id, position: r.position })),
+      { everyoneId: this.guild.id, botPosition: me.roles.highest.position },
+      orderedIds,
+    );
+    if (updates.length) await this.guild.roles.setPositions(updates);
   }
 
   private botOverwrite(): Promise<OverwriteResolvable | null> {
