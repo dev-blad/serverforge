@@ -79,7 +79,7 @@ tests/                          vitest unit tests
       registry, validate-templates script, starter/pro/elite + one themed template, tests
 - [x] M3 — License system: keygen, hashing, repository, activation/upgrade/revoke rules,
       rate limiter, keys CLI, payment webhook stub, tests
-- [ ] M4 — Builder: guild snapshot, planner (diff), preflight, queue with backoff, executor with
+- [x] M4 — Builder: guild snapshot, planner (diff), preflight, queue with backoff, executor with
       progress + resource tracking, rollback, Discord gateway, tests with mocked guild
 - [ ] M5 — Bot runtime + /setup flow: client, router, custom IDs, setup sessions, modal, preview,
       confirm/cancel, dry-run, progress, rollback button, summary + owner DM, resume on restart
