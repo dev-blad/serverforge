@@ -95,7 +95,21 @@ async function main(): Promise<void> {
     logger.error({ err: reason }, 'unhandled rejection'),
   );
 
-  await client.login(config.DISCORD_TOKEN);
+  try {
+    await client.login(config.DISCORD_TOKEN);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (/disallowed intents/i.test(message)) {
+      logger.fatal(
+        'Discord refused the login: enable "Server Members Intent" and "Message Content Intent" in the Developer Portal → your app → Bot → Privileged Gateway Intents, save, then restart.',
+      );
+    } else if (/invalid token|TokenInvalid/i.test(message)) {
+      logger.fatal(
+        'Discord rejected DISCORD_TOKEN. Reset the token in the Developer Portal → Bot and update the variable.',
+      );
+    }
+    throw error;
+  }
 }
 
 main().catch((error: unknown) => {
