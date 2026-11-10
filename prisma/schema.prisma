@@ -4,8 +4,11 @@
 // JSON payloads are stored as strings so the schema works identically on every provider.
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  // Generated imports end in .js so the compiled dist/ runs on plain Node.
+  importFileExtension = "js"
 }
 
 datasource db {
