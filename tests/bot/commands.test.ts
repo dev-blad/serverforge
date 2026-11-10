@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { commands, componentHandlers } from '../../src/commands/index.js';
 import { moduleRuntimes } from '../../src/modules/index.js';
+import { keyCopyView } from '../../src/commands/keys.js';
+import { parseCustomId } from '../../src/bot/customId.js';
+import { generateKey } from '../../src/services/license/keygen.js';
 
 describe('command definitions', () => {
   it('registers the expected commands with the right scopes', () => {
@@ -22,6 +25,27 @@ describe('command definitions', () => {
       ...moduleRuntimes.flatMap((r) => r.components?.map((h) => h.area) ?? []),
     ];
     expect(new Set(areas).size).toBe(areas.length);
-    expect(areas.sort()).toEqual(['br', 'setup', 'ticket', 'verify']);
+    expect(areas.sort()).toEqual(['br', 'keys', 'setup', 'ticket', 'verify']);
+  });
+});
+
+describe('/keys copy view', () => {
+  it('shows keys as plain text with one copy button per key', () => {
+    const keys = [generateKey(), generateKey(), generateKey()];
+    const view = keyCopyView(keys);
+    expect(view.content).toBe(keys.join('\n'));
+    expect(view.attachAll).toBe(false);
+    const ids = view.buttons.flatMap((row) =>
+      row.components.map((b) => (b.toJSON() as { custom_id: string }).custom_id),
+    );
+    expect(ids.map((id) => parseCustomId(id)?.args[0])).toEqual(keys);
+  });
+
+  it('caps buttons at 25 and attaches a file for large batches', () => {
+    const keys = Array.from({ length: 100 }, generateKey);
+    const view = keyCopyView(keys);
+    expect(view.buttons).toHaveLength(5);
+    expect(view.attachAll).toBe(true);
+    expect(view.content).toMatch(/attached file/);
   });
 });

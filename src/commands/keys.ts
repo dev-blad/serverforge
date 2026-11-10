@@ -1,5 +1,8 @@
 import {
+  ActionRowBuilder,
   AttachmentBuilder,
+  ButtonBuilder,
+  ButtonStyle,
   EmbedBuilder,
   MessageFlags,
   PermissionFlagsBits,
@@ -7,7 +10,9 @@ import {
   time,
   TimestampStyles,
 } from 'discord.js';
-import type { SlashCommand } from '../bot/types.js';
+import { customId } from '../bot/customId.js';
+import { assertSeller } from '../bot/router.js';
+import type { ComponentHandler, SlashCommand } from '../bot/types.js';
 import { COLORS, successEmbed, truncate } from '../bot/ui.js';
 import type { LicenseRecord, LicenseStatus } from '../db/types.js';
 import { UserFacingError } from '../errors.js';
@@ -76,6 +81,52 @@ const data = new SlashCommandBuilder()
       ),
   );
 
+const MAX_COPY_BUTTONS = 25;
+
+/**
+ * Generated keys as plain message text (embeds can't be long-pressed → Copy Text on mobile)
+ * plus one button per key that replies with just that key, so it can be copied on its own.
+ */
+export function keyCopyView(keys: readonly string[]): {
+  content: string;
+  buttons: ActionRowBuilder<ButtonBuilder>[];
+  attachAll: boolean;
+  allKeys: string;
+} {
+  const allKeys = keys.join('\n');
+  const fits = allKeys.length <= 2000;
+  const buttons: ActionRowBuilder<ButtonBuilder>[] = [];
+  keys.slice(0, MAX_COPY_BUTTONS).forEach((key, i) => {
+    if (i % 5 === 0) buttons.push(new ActionRowBuilder<ButtonBuilder>());
+    buttons.at(-1)?.addComponents(
+      new ButtonBuilder()
+        .setCustomId(customId(KEYS_AREA, 'copy', key))
+        .setLabel(`Key ${i + 1}`)
+        .setEmoji('📋')
+        .setStyle(ButtonStyle.Secondary),
+    );
+  });
+  return {
+    content: fits ? allKeys : 'Too many keys to show here — they are in the attached file.',
+    buttons,
+    attachAll: !fits || keys.length > MAX_COPY_BUTTONS,
+    allKeys,
+  };
+}
+
+const KEYS_AREA = 'keys';
+
+/** "📋 Key N" buttons: reply privately with only that key, as plain copyable text. */
+export const keysComponents: ComponentHandler = {
+  area: KEYS_AREA,
+  async handle(interaction, id, ctx) {
+    if (!interaction.isButton() || id.action !== 'copy') return;
+    assertSeller(interaction.guildId, interaction.user.id, ctx);
+    const key = id.args[0] ?? '';
+    await interaction.reply({ content: key, flags: MessageFlags.Ephemeral });
+  },
+};
+
 function describe(l: LicenseRecord): string {
   return `\`${LicenseService.mask(l)}\` · ${l.tier}${l.templateId ? `/${l.templateId}` : ''} · **${l.status}**${
     l.guildId ? ` · guild ${l.guildId}` : ''
@@ -96,22 +147,24 @@ export const keysCommand: SlashCommand = {
           note: interaction.options.getString('note'),
           templateId: interaction.options.getString('template'),
         });
-        const keys = generated.map((g) => g.key).join('\n');
         ctx.logger.info(
           { tier, count: generated.length, by: interaction.user.id },
           'keys generated via slash command',
         );
+        const view = keyCopyView(generated.map((g) => g.key));
         await interaction.editReply({
+          content: view.content,
           embeds: [
             successEmbed(
-              `Generated **${generated.length}** ${tier} key(s). They are shown **only once** — copy them now.\n\`\`\`\n${truncate(keys, 3900)}\n\`\`\``,
+              `Generated **${generated.length}** ${tier} key(s). They are shown **only once**.\n\n` +
+                '📋 **To copy on mobile:** long-press the message above → *Copy Text*, or tap a **Key** button below to get that key on its own.',
               'Keys generated',
             ),
           ],
-          files:
-            generated.length > 20
-              ? [new AttachmentBuilder(Buffer.from(keys), { name: `keys-${tier}.txt` })]
-              : [],
+          components: view.buttons,
+          files: view.attachAll
+            ? [new AttachmentBuilder(Buffer.from(view.allKeys), { name: `keys-${tier}.txt` })]
+            : [],
         });
         return;
       }

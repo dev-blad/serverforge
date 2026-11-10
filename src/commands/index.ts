@@ -1,7 +1,7 @@
 import type { ComponentHandler, SlashCommand } from '../bot/types.js';
 import { forgeCommand } from './forge.js';
 import { helpCommand } from './help.js';
-import { keysCommand } from './keys.js';
+import { keysCommand, keysComponents } from './keys.js';
 import { setupCommand, setupComponents } from './setup.js';
 
 /**
@@ -10,4 +10,4 @@ import { setupCommand, setupComponents } from './setup.js';
  */
 export const commands: SlashCommand[] = [setupCommand, forgeCommand, helpCommand, keysCommand];
 
-export const componentHandlers: ComponentHandler[] = [setupComponents];
+export const componentHandlers: ComponentHandler[] = [setupComponents, keysComponents];
