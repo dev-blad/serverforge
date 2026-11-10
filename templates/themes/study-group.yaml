@@ -1,0 +1,54 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Themed template example: Study group (Pro tier).
+# Generate keys for it with:  npm run keys -- generate --tier pro --template study-group
+# ─────────────────────────────────────────────────────────────────────────────
+id: study-group
+extends: pro
+name: Study Group
+tier: pro
+version: 1
+description: Pro package themed for study groups — subject channels, a resources forum and focus rooms.
+
+defaults:
+  brandColor: '#1ABC9C'
+
+roles:
+  - key: tutor
+    name: Tutor
+    after: moderator
+    color: '#1ABC9C'
+    hoist: true
+    mentionable: true
+    permissions: [ViewChannel, SendMessages, ReadMessageHistory, ManageThreads]
+
+categories:
+  - key: community
+    channels:
+      # Rename Starter's media channel for this theme.
+      - key: media
+        name: show-your-notes
+        topic: 'Share notes, diagrams and flashcards.'
+
+  - key: study
+    name: '📚 Study'
+    after: community
+    channels:
+      - key: homework-help
+        name: homework-help
+        topic: 'Ask for help — show what you tried first!'
+        slowmode: 15
+      - key: resources
+        name: resources
+        type: forum
+        topic: 'Useful links, guides and past papers. One resource per post.'
+        tags:
+          - { name: Maths, emoji: '➗' }
+          - { name: Science, emoji: '🔬' }
+          - { name: Languages, emoji: '🗣️' }
+          - { name: Humanities, emoji: '🏛️' }
+      - key: focus-room-1
+        name: Focus Room 1
+        type: voice
+      - key: focus-room-2
+        name: Focus Room 2
+        type: voice

@@ -1,0 +1,71 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Themed template example: Gaming community (Elite tier).
+# Generate keys for it with:  npm run keys -- generate --tier elite --template gaming
+# ─────────────────────────────────────────────────────────────────────────────
+id: gaming
+extends: elite
+name: Gaming Community
+tier: elite
+version: 1
+description: Elite package themed for gaming communities — LFG, squad voice channels, clips forum and game roles.
+
+defaults:
+  brandColor: '#9146FF'
+
+roles:
+  - key: game-fps
+    name: FPS
+  - key: game-mmo
+    name: MMO
+  - key: game-strategy
+    name: Strategy
+  - key: game-survival
+    name: Survival
+  - key: game-racing
+    name: Racing
+
+categories:
+  - key: gaming
+    name: '🎮 Looking For Group'
+    after: community
+    channels:
+      - key: lfg
+        name: lfg
+        topic: 'Looking for teammates? Post your game, rank, region and when you can play.'
+        slowmode: 30
+      - key: clips
+        name: clips
+        type: forum
+        topic: 'Show off your best plays.'
+        tags:
+          - { name: Highlight, emoji: '🔥' }
+          - { name: Funny, emoji: '😂' }
+          - { name: Fail, emoji: '💀' }
+      - key: squad-1
+        name: Squad 1
+        type: voice
+        userLimit: 5
+      - key: squad-2
+        name: Squad 2
+        type: voice
+        userLimit: 5
+      - key: duo
+        name: Duo
+        type: voice
+        userLimit: 2
+
+modules:
+  buttonRoles:
+    panels:
+      - key: games
+        channel: get-roles
+        embed:
+          title: '🎮 What do you play?'
+          color: '{{brandColor}}'
+          description: Pick the genres you play to find teammates in {{channel:lfg}}.
+        buttons:
+          - { key: fps, role: game-fps, label: FPS, emoji: '🔫' }
+          - { key: mmo, role: game-mmo, label: MMO, emoji: '🗡️' }
+          - { key: strategy, role: game-strategy, label: Strategy, emoji: '♟️' }
+          - { key: survival, role: game-survival, label: Survival, emoji: '🏕️' }
+          - { key: racing, role: game-racing, label: Racing, emoji: '🏎️' }
