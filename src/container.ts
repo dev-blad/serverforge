@@ -14,11 +14,16 @@ import { CaptureService } from './services/template/captureService.js';
 import { loadTemplates } from './services/template/loader.js';
 import { TemplateRegistry } from './services/template/registry.js';
 
-/** Gateway intents ServerForge needs. GuildMembers is privileged — enable it in the dev portal. */
+/**
+ * Gateway intents ServerForge needs. GuildMembers and MessageContent are *privileged*: enable
+ * "Server Members Intent" and "Message Content Intent" in the Developer Portal → Bot.
+ * MessageContent is required for ticket transcripts and edit/delete logs to include text.
+ */
 export const INTENTS = [
   GatewayIntentBits.Guilds,
   GatewayIntentBits.GuildMembers,
   GatewayIntentBits.GuildMessages,
+  GatewayIntentBits.MessageContent,
   GatewayIntentBits.GuildModeration,
   GatewayIntentBits.AutoModerationExecution,
 ];

@@ -2,7 +2,7 @@
   "name": "serverforge",
   "version": "1.0.0",
   "private": true,
-  "description": "ServerForge — a Discord bot that builds complete community servers from tiered, data-driven templates.",
+  "description": "ServerForge \u2014 a Discord bot that builds complete community servers from tiered, data-driven templates.",
   "type": "module",
   "engines": {
     "node": ">=20.19"
@@ -24,7 +24,8 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "invite-url": "tsx scripts/invite-url.ts"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.10.1",

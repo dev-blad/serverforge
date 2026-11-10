@@ -43,11 +43,22 @@ roles:
       - MoveMembers
       - ViewAuditLog
       - MentionEveryone
+  # Given to every bot that joins, so other bots keep working even behind Pro's verification gate.
   - key: bots
     name: Bots
     color: '#95A5A6'
     hoist: true
-    permissions: []
+    permissions:
+      - ViewChannel
+      - SendMessages
+      - SendMessagesInThreads
+      - EmbedLinks
+      - AttachFiles
+      - AddReactions
+      - UseExternalEmojis
+      - ReadMessageHistory
+      - Connect
+      - Speak
   - key: member
     name: Member
     color: '#2ECC71'
