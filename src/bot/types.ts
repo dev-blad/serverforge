@@ -13,6 +13,8 @@ import type { ModuleConfigStore } from '../modules/configStore.js';
 import type { LicenseService } from '../services/license/licenseService.js';
 import type { KeyAttemptGuard } from '../services/rateLimit/rateLimiter.js';
 import type { SetupService } from '../services/setup/setupService.js';
+import type { StatusService } from '../services/setup/statusService.js';
+import type { CaptureService } from '../services/template/captureService.js';
 import type { TemplateRegistry } from '../services/template/registry.js';
 import type { ParsedCustomId } from './customId.js';
 
@@ -25,6 +27,8 @@ export interface AppContext {
   licenses: LicenseService;
   keyGuard: KeyAttemptGuard;
   setup: SetupService;
+  status: StatusService;
+  capture: CaptureService;
   moduleConfig: ModuleConfigStore;
   client: Client;
 }

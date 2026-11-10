@@ -177,3 +177,18 @@ describe('shipped templates', () => {
     expect(JSON.stringify(rendered)).not.toMatch(/\{\{(serverName|brandColor)/);
   });
 });
+
+describe('error reporting', () => {
+  it('reports a broken parent once and skips its descendants', () => {
+    const bad = miniTemplate({ roles: [{ key: 'x', name: 'X', permissions: ['Nope'] }] });
+    const child = { id: 'child', extends: 'mini', name: 'Child', tier: 'pro' };
+    let message = '';
+    try {
+      compileTemplates([rawFile(child), rawFile(bad)], { requireBaseTiers: false });
+    } catch (e) {
+      message = (e as Error).message;
+    }
+    expect(message).toMatch(/2 problem/);
+    expect(message).toMatch(/child\.yaml \(child\): skipped — extends invalid template "mini"/);
+  });
+});

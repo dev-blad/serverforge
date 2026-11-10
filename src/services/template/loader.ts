@@ -2,7 +2,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parse as parseYaml, YAMLParseError } from 'yaml';
 import { TemplateError } from '../../errors.js';
-import { resolveInheritance, type RawTemplate } from './inheritance.js';
+import { inheritanceChain, resolveInheritance, type RawTemplate } from './inheritance.js';
 import { TIERS, templateSchema, type Template } from './schema.js';
 import { formatZodError, validateSemantics } from './validate.js';
 
@@ -101,7 +101,22 @@ export function compileTemplates(
   }
 
   const templates = new Map<string, Template>();
-  for (const [id, file] of fileById) {
+  const failed = new Set<string>();
+  // Parents first, so a broken parent is reported once instead of once per descendant.
+  const ordered = [...fileById.keys()].sort(
+    (a, b) => inheritanceChain(a, rawById).length - inheritanceChain(b, rawById).length,
+  );
+  for (const id of ordered) {
+    const file = fileById.get(id) ?? id;
+    const brokenAncestor = inheritanceChain(id, rawById)
+      .slice(0, -1)
+      .find((ancestor) => failed.has(ancestor));
+    if (brokenAncestor) {
+      problems.push(`${file} (${id}): skipped — extends invalid template "${brokenAncestor}"`);
+      failed.add(id);
+      continue;
+    }
+    const before = problems.length;
     try {
       const merged = resolveInheritance(id, rawById);
       const result = templateSchema.safeParse(merged);
@@ -118,6 +133,8 @@ export function compileTemplates(
       templates.set(id, result.data);
     } catch (error) {
       problems.push(`${file} (${id}): ${(error as Error).message}`);
+    } finally {
+      if (problems.length > before) failed.add(id);
     }
   }
 

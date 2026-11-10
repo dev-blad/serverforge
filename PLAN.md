@@ -85,6 +85,6 @@ tests/                          vitest unit tests
       confirm/cancel, dry-run, progress, rollback button, summary + owner DM, resume on restart
 - [x] M6 — Feature modules: autoRole, verification, buttonRoles, logging, automod, tickets
       (+ transcripts), memberStats
-- [ ] M7 — Other commands: /forge status|resync|capture, /help, owner-only /keys, deploy script
+- [x] M7 — Other commands: /forge status|resync|capture, /help, owner-only /keys, deploy script
 - [ ] M8 — Docs: README (tiers, buyer guide, seller guide, Railway/Docker), TEMPLATES.md,
       CHANGELOG.md, DECISIONS.md; final typecheck/lint/test pass

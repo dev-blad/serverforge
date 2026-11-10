@@ -9,6 +9,8 @@ import { moduleInstallers } from './modules/index.js';
 import { LicenseService } from './services/license/licenseService.js';
 import { KeyAttemptGuard } from './services/rateLimit/rateLimiter.js';
 import { SetupService } from './services/setup/setupService.js';
+import { StatusService } from './services/setup/statusService.js';
+import { CaptureService } from './services/template/captureService.js';
 import { loadTemplates } from './services/template/loader.js';
 import { TemplateRegistry } from './services/template/registry.js';
 
@@ -66,6 +68,8 @@ export async function createContainer(
     licenses,
     keyGuard,
     setup,
+    status: new StatusService(database, templates),
+    capture: new CaptureService(config.TEMPLATES_DIR, logger),
     moduleConfig: new ModuleConfigStore(database),
     client,
   };
