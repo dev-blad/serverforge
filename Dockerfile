@@ -22,8 +22,9 @@ COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/prisma.config.ts ./prisma.config.ts
 COPY --from=build /app/templates ./templates
-RUN mkdir -p /app/data && chown -R node:node /app
-USER node
-VOLUME ["/app/data"]
+# Persistent data (SQLite) lives in /app/data — mount a volume there (docker compose does this;
+# on Railway add a volume at /app/data). No VOLUME instruction: Railway rejects it.
+# Runs as root because Railway mounts volumes as root-owned.
+RUN mkdir -p /app/data
 # Apply migrations, then start the bot.
 CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy && node dist/src/index.js"]
