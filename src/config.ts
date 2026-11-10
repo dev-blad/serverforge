@@ -37,6 +37,11 @@ export const botConfigSchema = baseConfigSchema.extend({
   DEV_GUILD_ID: optionalSnowflake,
   OWNER_USER_ID: snowflake,
   ADMIN_GUILD_ID: snowflake,
+  /** Register slash commands automatically on startup (set to "false" to manage them manually). */
+  AUTO_REGISTER_COMMANDS: z
+    .string()
+    .optional()
+    .transform((v) => v !== 'false' && v !== '0'),
 });
 
 export type BaseConfig = z.infer<typeof baseConfigSchema>;

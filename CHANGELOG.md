@@ -4,6 +4,13 @@ All notable changes to ServerForge are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Slash commands are registered automatically on startup (`AUTO_REGISTER_COMMANDS`, default on).
+  `DEV_GUILD_ID` now means test mode: every command registers instantly in that server only.
+
 ## [1.0.0] — 2026-11-10
 
 ### Added

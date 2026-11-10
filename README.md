@@ -131,12 +131,12 @@ npm install                   # also generates the Prisma client
 cp .env.example .env          # then fill it in (see below)
 npm run db:migrate            # create/upgrade the SQLite database
 npm run validate-templates    # check all templates
-npm run deploy-commands       # register slash commands (global + your admin server)
 npm run dev                   # start with auto-reload (or: npm run build && npm start)
 ```
 
-While developing, set `DEV_GUILD_ID` (usually the same as `ADMIN_GUILD_ID`) and run
-`npm run deploy-commands -- --dev` — guild commands update instantly, global ones can take an hour.
+Slash commands are **registered automatically when the bot starts**. Global commands can take up to
+an hour to appear. For testing, set `DEV_GUILD_ID` to your test server: every command then appears
+there instantly (and nowhere else). Remove it when you start selling.
 
 | Variable                                                                          | Required | Description                                                                                                                                                                                                            |
 | --------------------------------------------------------------------------------- | :------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -146,7 +146,7 @@ While developing, set `DEV_GUILD_ID` (usually the same as `ADMIN_GUILD_ID`) and 
 | `ADMIN_GUILD_ID`                                                                  |    ✅    | Your private server; seller commands (`/keys`, `/forge capture`) only work here.                                                                                                                                       |
 | `LICENSE_PEPPER`                                                                  |    ✅    | Secret (≥16 chars) used to hash keys. Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. **Never change it after selling keys** — existing keys would stop working. Back it up. |
 | `DATABASE_URL`                                                                    |          | Default `file:./data/serverforge.db`.                                                                                                                                                                                  |
-| `DEV_GUILD_ID`                                                                    |          | Server for instant command registration with `--dev`.                                                                                                                                                                  |
+| `DEV_GUILD_ID`                                                                    |          | Test mode: all commands appear instantly in this server only. Remove it before selling.                                                                                                                                |
 | `LOG_LEVEL`                                                                       |          | `trace`…`fatal`, default `info`.                                                                                                                                                                                       |
 | `LOG_PRETTY`                                                                      |          | `true` for human-readable logs (needs dev dependencies).                                                                                                                                                               |
 | `TEMPLATES_DIR`                                                                   |          | Default `./templates`.                                                                                                                                                                                                 |
@@ -201,8 +201,7 @@ docker compose exec serverforge node dist/scripts/keys.js generate --tier pro --
 
 The image runs `prisma migrate deploy` on start, then the bot. The SQLite database lives in the
 `serverforge-data` volume (`/app/data`), and `./templates` is mounted so you can add templates
-without rebuilding (restart to load them). Register commands once from your machine with
-`npm run deploy-commands` (or `docker compose exec serverforge node dist/scripts/deploy-commands.js`).
+without rebuilding (restart to load them). Slash commands register automatically on startup.
 
 #### Railway
 
@@ -215,7 +214,7 @@ without rebuilding (restart to load them). Register commands once from your mach
    **`/app/data`**. Without it the database — and every sold key — is lost on each deploy.
 4. No public domain/port is needed (the bot only makes outbound connections).
 5. Deploy. Check **Deployments → Logs** for `ServerForge is online`.
-6. Register commands once from your machine (`npm run deploy-commands` with the same `.env`).
+6. Slash commands register automatically when the bot starts (set `DEV_GUILD_ID` to your test server to see them instantly).
 7. Generate keys from Railway's shell: service → **⋯ → Shell** (or `railway ssh`) →
    `node dist/scripts/keys.js generate --tier pro --note "order 1"`.
 
@@ -268,7 +267,7 @@ It's saved to `templates/captured/<id>.yaml` and attached to the reply. Add `mes
 | `npm run dev` / `build` / `start`                  | Run with tsx watch / compile / run compiled |
 | `npm run typecheck` / `lint` / `test` / `coverage` | Quality gates                               |
 | `npm run validate-templates [-- --dir path]`       | Validate templates                          |
-| `npm run deploy-commands [-- --dev \| --clear]`    | Register slash commands                     |
+| `npm run deploy-commands [-- --clear]`             | Register (or clear) slash commands manually |
 | `npm run keys -- …`                                | License key CLI                             |
 | `npm run invite-url`                               | Print the buyer invite link                 |
 | `npm run db:migrate`                               | Apply database migrations                   |

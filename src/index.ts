@@ -2,6 +2,7 @@ import { Events } from 'discord.js';
 import { guildContext } from './bot/guildContext.js';
 import { dmOwner, postSummary } from './bot/notifications.js';
 import { InteractionRouter } from './bot/router.js';
+import { planCommandRegistration } from './bot/registerCommands.js';
 import { commands, componentHandlers } from './commands/index.js';
 import { loadBotConfig } from './config.js';
 import { createContainer } from './container.js';
@@ -29,6 +30,30 @@ async function main(): Promise<void> {
 
   client.once(Events.ClientReady, (ready) => {
     logger.info({ user: ready.user.tag, guilds: ready.guilds.cache.size }, 'ServerForge is online');
+    if (config.AUTO_REGISTER_COMMANDS) {
+      const plan = planCommandRegistration(commands, {
+        adminGuildId: config.ADMIN_GUILD_ID,
+        devGuildId: config.DEV_GUILD_ID,
+      });
+      void (async () => {
+        await ready.application.commands.set(plan.global);
+        for (const [guildId, body] of Object.entries(plan.guilds)) {
+          try {
+            await ready.application.commands.set(body, guildId);
+          } catch (error) {
+            // Usually means the bot hasn't been invited to that server yet.
+            logger.warn(
+              { err: error, guildId },
+              'could not register commands in guild (is the bot in it?)',
+            );
+          }
+        }
+        logger.info(
+          { global: plan.global.length, guilds: Object.keys(plan.guilds) },
+          'slash commands registered',
+        );
+      })().catch((error: unknown) => logger.error({ err: error }, 'command registration failed'));
+    }
     // Resume builds that were running when the bot stopped (crash, deploy, restart).
     void ctx.setup
       .resumeInterrupted(
