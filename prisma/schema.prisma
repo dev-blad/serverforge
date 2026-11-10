@@ -1,0 +1,138 @@
+// ServerForge database schema.
+// SQLite by default. To move to Postgres: change `provider` to "postgresql", swap the
+// better-sqlite3 driver adapter for @prisma/adapter-pg in src/db/prisma.ts and set DATABASE_URL.
+// JSON payloads are stored as strings so the schema works identically on every provider.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+/// A sold license key. Only an HMAC hash of the key is stored.
+model License {
+  id          String    @id @default(cuid())
+  keyHash     String    @unique
+  /// Last 4 characters of the key, for masked display (FORGE-****-****-AB12).
+  last4       String
+  tier        String
+  /// Optional themed template; defaults to the tier's base template.
+  templateId  String?
+  /// unused | active | revoked
+  status      String    @default("unused")
+  note        String?
+  guildId     String?
+  activatedAt DateTime?
+  activatedBy String?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([guildId])
+  @@index([status])
+}
+
+/// A customer guild that has been (or is being) built by ServerForge.
+model Guild {
+  id         String    @id
+  tier       String
+  templateId String
+  licenseId  String?
+  ownerId    String
+  /// JSON: { serverName, brandColor, mode }
+  options    String
+  builtAt    DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+/// Every Discord resource ServerForge created or adopted, keyed by template key.
+model GuildResource {
+  id        String   @id @default(cuid())
+  guildId   String
+  /// e.g. "role:member", "channel:general", "message:rules", "automod:spam"
+  key       String
+  /// role | category | channel | message | automod | everyone
+  kind      String
+  discordId String
+  /// For messages: the channel the message lives in.
+  channelId String?
+  /// Build run that created this resource (null when adopted).
+  runId     String?
+  /// true when ServerForge created it, false when an existing resource was adopted.
+  created   Boolean  @default(true)
+  /// JSON snapshot of the previous state for modified resources (used by rollback).
+  previous  String?
+  createdAt DateTime @default(now())
+
+  @@unique([guildId, key])
+  @@index([guildId, runId])
+}
+
+/// Per-guild feature module state + resolved config (JSON).
+model GuildModule {
+  guildId   String
+  moduleId  String
+  enabled   Boolean  @default(true)
+  config    String
+  updatedAt DateTime @updatedAt
+
+  @@id([guildId, moduleId])
+}
+
+/// One execution of the builder (setup, upgrade or resync).
+model BuildRun {
+  id         String    @id @default(cuid())
+  guildId    String
+  licenseId  String?
+  templateId String
+  tier       String
+  /// setup | upgrade | resync
+  kind       String
+  /// alongside | clean
+  mode       String
+  /// running | succeeded | failed | rolled_back | interrupted
+  status     String
+  /// JSON customer options
+  options    String
+  userId     String
+  total      Int       @default(0)
+  completed  Int       @default(0)
+  error      String?
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  @@index([guildId, status])
+}
+
+/// A pending /setup conversation (persisted so buttons survive restarts).
+model SetupSession {
+  id        String   @id @default(cuid())
+  guildId   String
+  userId    String
+  licenseId String
+  dryRun    Boolean  @default(false)
+  mode      String?
+  /// JSON customer options once the modal has been submitted
+  options   String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+/// Support tickets (Elite).
+model Ticket {
+  id        String    @id @default(cuid())
+  guildId   String
+  channelId String    @unique
+  openerId  String
+  number    Int
+  /// open | closed
+  status    String    @default("open")
+  createdAt DateTime  @default(now())
+  closedAt  DateTime?
+  closedBy  String?
+
+  @@index([guildId])
+}

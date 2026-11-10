@@ -31,18 +31,18 @@ server from a data-driven template.
 
 Key principles
 
-* **Templates are data.** YAML files in `/templates`, validated by zod at startup (fail fast).
+- **Templates are data.** YAML files in `/templates`, validated by zod at startup (fail fast).
   Inheritance via `extends`, keyed-array deep merge, placeholders rendered from customer options.
-* **The planner is pure.** `plan(desiredTemplate, guildSnapshot, trackedResources, mode)` → list of
+- **The planner is pure.** `plan(desiredTemplate, guildSnapshot, trackedResources, mode)` → list of
   actions. Setup, re-sync, upgrades and dry-runs all use the same diff. Fully unit-testable with a
   mocked guild snapshot.
-* **The executor is dumb.** It walks actions in phase order through a rate-limited retrying queue,
+- **The executor is dumb.** It walks actions in phase order through a rate-limited retrying queue,
   talks to Discord through a `GuildGateway` interface (fakeable), records every created resource in
   the DB immediately (crash-safe / idempotent / rollback-able) and reports progress.
-* **Commands are thin.** Command handlers parse input, call a service, render an embed.
-* **Persistent interactions.** Every button/modal uses a `sf:<area>:<action>:<args>` custom ID and
+- **Commands are thin.** Command handlers parse input, call a service, render an embed.
+- **Persistent interactions.** Every button/modal uses a `sf:<area>:<action>:<args>` custom ID and
   state lives in the DB — nothing depends on in-memory collectors.
-* **Repositories behind interfaces.** Prisma for production, in-memory for tests.
+- **Repositories behind interfaces.** Prisma for production, in-memory for tests.
 
 ## Folder structure
 
@@ -73,7 +73,7 @@ tests/                          vitest unit tests
 ## Milestones
 
 - [x] M0 — PLAN.md
-- [ ] M1 — Project scaffold: package.json, TS strict, eslint+prettier, vitest, pino, dotenv/config,
+- [x] M1 — Project scaffold: package.json, TS strict, eslint+prettier, vitest, pino, dotenv/config,
       Prisma schema, Dockerfile, docker-compose, .env.example
 - [ ] M2 — Template system: zod schema, loader, inheritance resolver, placeholder renderer,
       registry, validate-templates script, starter/pro/elite + one themed template, tests
