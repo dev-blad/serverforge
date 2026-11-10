@@ -83,7 +83,7 @@ tests/                          vitest unit tests
       progress + resource tracking, rollback, Discord gateway, tests with mocked guild
 - [x] M5 — Bot runtime + /setup flow: client, router, custom IDs, setup sessions, modal, preview,
       confirm/cancel, dry-run, progress, rollback button, summary + owner DM, resume on restart
-- [ ] M6 — Feature modules: autoRole, verification, buttonRoles, logging, automod, tickets
+- [x] M6 — Feature modules: autoRole, verification, buttonRoles, logging, automod, tickets
       (+ transcripts), memberStats
 - [ ] M7 — Other commands: /forge status|resync|capture, /help, owner-only /keys, deploy script
 - [ ] M8 — Docs: README (tiers, buyer guide, seller guide, Railway/Docker), TEMPLATES.md,

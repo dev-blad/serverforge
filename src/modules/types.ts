@@ -31,6 +31,8 @@ export interface ModuleInstallContext {
   }): Promise<void>;
   /** A tracked resource by key, or null. */
   tracked(key: string): Promise<ResourceRecord | null>;
+  /** Report a non-fatal problem; shown to the customer in the build summary. */
+  warn(message: string): void;
 }
 
 /**

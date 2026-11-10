@@ -383,6 +383,7 @@ export class BuildExecutor {
           logger: this.deps.logger.child({ module: action.moduleId, guildId }),
           track: (r) => track(r),
           tracked: (key) => db.resources.get(guildId, key),
+          warn: (message) => ctx.warnings.push(message),
         });
         await db.modules.upsert({ guildId, moduleId: action.moduleId, enabled: true, config });
         return;
