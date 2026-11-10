@@ -81,7 +81,7 @@ tests/                          vitest unit tests
       rate limiter, keys CLI, payment webhook stub, tests
 - [x] M4 — Builder: guild snapshot, planner (diff), preflight, queue with backoff, executor with
       progress + resource tracking, rollback, Discord gateway, tests with mocked guild
-- [ ] M5 — Bot runtime + /setup flow: client, router, custom IDs, setup sessions, modal, preview,
+- [x] M5 — Bot runtime + /setup flow: client, router, custom IDs, setup sessions, modal, preview,
       confirm/cancel, dry-run, progress, rollback button, summary + owner DM, resume on restart
 - [ ] M6 — Feature modules: autoRole, verification, buttonRoles, logging, automod, tickets
       (+ transcripts), memberStats
