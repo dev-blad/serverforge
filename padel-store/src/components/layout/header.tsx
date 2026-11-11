@@ -30,6 +30,13 @@ export function Header() {
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded focus:bg-white focus:p-2">
         Skip to content
       </a>
+      {process.env.NEXT_PUBLIC_DEMO_MODE === "true" && (
+        <div className="bg-lime-accent text-center text-xs font-semibold text-brand-950">
+          <Link href="/demo" className="inline-block px-4 py-1.5 underline-offset-2 hover:underline">
+            🧪 Demo store — no real payments. Logins, discount codes &amp; a test checklist →
+          </Link>
+        </div>
+      )}
       <div className="bg-brand-900 text-xs text-white">
         <div className="container-page flex h-8 items-center justify-center gap-6 sm:justify-between">
           <p className="flex items-center gap-1.5">

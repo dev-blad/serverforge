@@ -31,7 +31,7 @@ export function MegaMenu() {
   };
 
   return (
-    <nav ref={navRef} aria-label="Main" className="relative hidden lg:block" onMouseLeave={leave}>
+    <nav ref={navRef} aria-label="Main" className="hidden lg:block" onMouseLeave={leave}>
       <ul className="flex items-center gap-1">
         {NAV.map((item, i) => (
           <li key={item.label} onMouseEnter={() => enter(i)}>
@@ -57,7 +57,7 @@ export function MegaMenu() {
           id={`mega-${i}`}
           hidden={open !== i}
           onMouseEnter={() => enter(i)}
-          className="fixed inset-x-0 top-[var(--header-h,112px)] z-40 border-t border-line bg-white shadow-xl"
+          className="absolute inset-x-0 top-full z-40 border-t border-line bg-white shadow-xl"
         >
           <div className="container-page grid grid-cols-4 gap-8 py-8">
             {item.columns.map((col) => (

@@ -4,11 +4,12 @@ import { Providers } from "@/components/providers/providers";
 import { CookieBanner } from "@/components/layout/cookie-banner";
 import { ConsentScripts } from "@/components/layout/consent-scripts";
 import { store } from "@/lib/config";
+import { siteUrl as getSiteUrl } from "@/lib/utils";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

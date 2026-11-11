@@ -29,8 +29,13 @@ export function formatDate(d: Date | string, opts: Intl.DateTimeFormatOptions = 
   return new Intl.DateTimeFormat("en-GB", { timeZone: "Europe/London", ...opts }).format(new Date(d));
 }
 
+export function siteUrl() {
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL;
+  return (process.env.NEXT_PUBLIC_SITE_URL || (vercel ? `https://${vercel}` : "http://localhost:3000")).replace(/\/$/, "");
+}
+
 export function absoluteUrl(path = "/") {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+  const base = siteUrl();
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
 

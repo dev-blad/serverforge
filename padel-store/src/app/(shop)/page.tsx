@@ -10,6 +10,7 @@ import { Stars } from "@/components/ui/stars";
 import { NewsletterForm } from "@/components/layout/newsletter-form";
 import { RecentlyViewed } from "@/components/product/recently-viewed";
 import { store } from "@/lib/config";
+import { absoluteUrl } from "@/lib/utils";
 
 export const revalidate = 600;
 
@@ -32,7 +33,7 @@ export default async function HomePage() {
     "@context": "https://schema.org",
     "@type": "OnlineStore",
     name: store.name,
-    url: process.env.NEXT_PUBLIC_SITE_URL,
+    url: absoluteUrl("/"),
     email: store.email,
     address: { "@type": "PostalAddress", streetAddress: store.address, addressCountry: "GB" },
     aggregateRating: agg._count ? { "@type": "AggregateRating", ratingValue: (agg._avg.rating ?? 0).toFixed(1), reviewCount: agg._count } : undefined,

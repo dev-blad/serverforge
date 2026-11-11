@@ -1,5 +1,7 @@
 # ServerForge
 
+> **Also in this repo:** [`padel-store/`](./padel-store/README.md) — a separate Next.js UK padel e-commerce store (unrelated to the bot).
+
 **ServerForge** is a Discord bot that sells ready-made _community setup packages_. A buyer gets a
 license key, invites the bot, runs `/setup`, and ServerForge builds a complete, consistent,
 professional server — roles, categories, channels, permissions, welcome & rules embeds and
