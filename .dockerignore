@@ -5,3 +5,4 @@ coverage
 data
 .git
 src/generated
+padel-store

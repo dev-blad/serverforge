@@ -4,7 +4,7 @@ import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
   {
-    ignores: ['dist/**', 'coverage/**', 'node_modules/**', 'src/generated/**', 'data/**'],
+    ignores: ['padel-store/**', 'dist/**', 'coverage/**', 'node_modules/**', 'src/generated/**', 'data/**'],
   },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,

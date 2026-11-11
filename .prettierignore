@@ -4,3 +4,4 @@ node_modules
 src/generated
 data
 package-lock.json
+padel-store
