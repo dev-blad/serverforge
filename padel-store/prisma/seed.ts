@@ -23,7 +23,9 @@ const daysAgo = (d: number, hour = int(7, 22)) => {
   const date = new Date();
   date.setDate(date.getDate() - d);
   date.setHours(hour, int(0, 59), int(0, 59), 0);
-  return date;
+  const now = Date.now();
+  // Never generate timestamps in the future (e.g. "today, 10pm" when it's 9am)
+  return date.getTime() > now ? new Date(now - int(5, 300) * 60_000) : date;
 };
 
 const FIRST = ["Oliver", "Amelia", "George", "Isla", "Harry", "Ava", "Jack", "Mia", "Charlie", "Sophia", "Noah", "Grace", "Leo", "Freya", "Alfie", "Emily", "Oscar", "Poppy", "Arthur", "Ella", "Thomas", "Lily", "James", "Evie", "William", "Chloe", "Henry", "Ruby", "Archie", "Priya", "Mohammed", "Aisha", "Callum", "Niamh", "Rhys", "Siobhan"];
