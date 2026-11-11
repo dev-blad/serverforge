@@ -20,6 +20,7 @@ export async function ProductListing({
     <div className="mt-6 grid gap-8 lg:grid-cols-[220px_1fr]">
       <FilterSidebar facets={result.facets} />
       <div>
+        <h2 className="sr-only">Products</h2>
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-muted" aria-live="polite">
             {result.total} product{result.total === 1 ? "" : "s"}

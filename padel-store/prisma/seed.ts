@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { PrismaClient, type OrderStatus, type Prisma } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { createHash } from "node:crypto";

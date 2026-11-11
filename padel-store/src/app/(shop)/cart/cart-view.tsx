@@ -10,10 +10,16 @@ import { CartSummary } from "@/components/cart/cart-summary";
 
 export function CartView() {
   const { cart, loading } = useCart();
-  if (loading) return <p className="mt-6 text-muted">Loading your basket…</p>;
+  if (loading)
+    return (
+      <div className="mt-6" aria-busy="true">
+        <p className="sr-only">Loading your basket…</p>
+        <div className="h-72 animate-pulse rounded-xl bg-canvas" />
+      </div>
+    );
   if (!cart?.items.length)
     return (
-      <div className="card mt-6 p-10 text-center">
+      <div className="card mt-6 flex min-h-72 flex-col items-center justify-center p-10 text-center">
         <p className="text-lg font-semibold">Your basket is empty</p>
         <p className="mt-1 text-muted">Let&apos;s find you some kit.</p>
         <div className="mt-6 flex justify-center gap-3">

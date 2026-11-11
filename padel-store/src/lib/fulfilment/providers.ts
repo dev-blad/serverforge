@@ -1,7 +1,7 @@
 import { SHIPPING_FROM, features } from "@/lib/config";
 import { getShippingMethod } from "@/lib/shipping-rates";
 import { renderStubLabel } from "./pdf";
-import { trackingUrlFor, type LabelRequest, type LabelResult, type ShippingProvider } from "./types";
+import { trackingUrlFor, type ShippingProvider } from "./types";
 
 /** Local provider: generates a realistic (but clearly marked DEMO) PDF label. No credentials needed. */
 export const stubProvider: ShippingProvider = {

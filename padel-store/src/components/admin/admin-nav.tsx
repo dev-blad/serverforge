@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Boxes, ClipboardList, FolderTree, Gift, Inbox, Mail, MessageCircle, Package, Percent, Settings, Star, Truck, Users, Map, Menu, X } from "lucide-react";
+import { BarChart3, Boxes, ClipboardList, FolderTree, Inbox, Mail, MessageCircle, Package, Percent, Settings, Star, Truck, Users, Map, Menu, X } from "lucide-react";
 import { useState } from "react";
 
 const LINKS = [

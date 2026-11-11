@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${p.name}${p.category.slug === "rackets" ? " Padel Racket" : ""}`,
     description: `${p.shortDescription} £${(p.price / 100).toFixed(2)} with free UK delivery over £50.`,
     alternates: { canonical: `/products/${p.slug}` },
-    openGraph: { title: p.name, description: p.shortDescription, type: "website", images: [{ url: `/products/${p.slug}/opengraph-image` }] },
+    openGraph: { title: p.name, description: p.shortDescription, type: "website" },
   };
 }
 

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { RegisterForm } from "./register-form";
 
-export const metadata: Metadata = { title: "Create an account", robots: { index: false } };
+export const metadata: Metadata = { title: "Create an account", description: "Create a Courtline Padel account for faster checkout, saved cards and order history." };
 
 export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ callbackUrl?: string; email?: string }> }) {
   const sp = await searchParams;

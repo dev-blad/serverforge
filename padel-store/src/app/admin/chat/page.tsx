@@ -24,7 +24,8 @@ export default async function ChatInbox() {
           return (
             <li key={c.id}>
               <Link href={`/admin/chat/${c.id}`} className="flex items-start gap-3 p-4 hover:bg-canvas">
-                <span className={`mt-1.5 size-2.5 shrink-0 rounded-full ${awaiting ? "bg-lime-strong" : "bg-line"}`} aria-label={awaiting ? "Awaiting reply" : undefined} />
+                <span className={`mt-1.5 size-2.5 shrink-0 rounded-full ${awaiting ? "bg-lime-strong" : "bg-line"}`} aria-hidden />
+                {awaiting && <span className="sr-only">Awaiting reply:</span>}
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold">{c.name ?? "Visitor"} <span className="text-xs font-normal text-muted">#{c.code} {c.email} · {c.status.toLowerCase()}</span></p>
                   <p className="truncate text-sm text-muted">{last?.author === "AGENT" ? "You: " : ""}{last?.body}</p>

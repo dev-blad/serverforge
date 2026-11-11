@@ -3,34 +3,17 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import Resend from "next-auth/providers/resend";
-import bcrypt from "bcryptjs";
-import { z } from "zod";
 import type { Provider } from "next-auth/providers";
 import { db } from "@/lib/db";
 import { adminEmails } from "@/lib/config";
 import { sendEmail } from "@/lib/email/send";
 import { magicLinkEmail } from "@/lib/email/templates";
+import { verifyCredentials } from "@/lib/credentials";
 
 declare module "next-auth" {
   interface Session {
     user: { id: string; role: "CUSTOMER" | "ADMIN" } & DefaultSession["user"];
   }
-}
-
-const credentialsSchema = z.object({
-  email: z.string().email().transform((e) => e.toLowerCase().trim()),
-  password: z.string().min(1).max(200),
-});
-
-/** Verify an email/password pair. Exported for tests. */
-export async function verifyCredentials(raw: unknown) {
-  const parsed = credentialsSchema.safeParse(raw);
-  if (!parsed.success) return null;
-  const user = await db.user.findUnique({ where: { email: parsed.data.email } });
-  if (!user?.passwordHash) return null;
-  const ok = await bcrypt.compare(parsed.data.password, user.passwordHash);
-  if (!ok) return null;
-  return { id: user.id, email: user.email, name: user.name, image: user.image, role: user.role };
 }
 
 const providers: Provider[] = [

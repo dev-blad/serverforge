@@ -2,11 +2,16 @@
 
 import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
+import { usePathname } from "next/navigation";
 import { useConsent } from "@/components/providers/consent-provider";
 
 /** Third-party scripts that are only injected after the visitor opts in. */
 export function ConsentScripts() {
   const { consent } = useConsent();
+  const pathname = usePathname();
+  // The Vercel Analytics script is served by the Vercel edge only (NEXT_PUBLIC_VERCEL_ENV is set automatically there).
+  const onVercel = Boolean(process.env.NEXT_PUBLIC_VERCEL_ENV);
+  if (pathname.startsWith("/admin")) return null;
   const plausible = process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN;
   const vercel = process.env.NEXT_PUBLIC_VERCEL_ANALYTICS !== "false";
   const chat = process.env.NEXT_PUBLIC_CHAT_PROVIDER;
@@ -15,7 +20,7 @@ export function ConsentScripts() {
 
   return (
     <>
-      {consent?.analytics && vercel && <Analytics />}
+      {consent?.analytics && vercel && onVercel && <Analytics />}
       {consent?.analytics && plausible && (
         <Script src="https://plausible.io/js/script.js" data-domain={plausible} strategy="afterInteractive" />
       )}

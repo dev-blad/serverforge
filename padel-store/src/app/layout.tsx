@@ -16,9 +16,8 @@ export const metadata: Metadata = {
   description:
     "Independent UK padel shop. Padel rackets for every level, tour balls by the tube or box, and expert advice. Free UK delivery over £50, same-day dispatch before 2pm.",
   applicationName: store.name,
-  openGraph: { type: "website", siteName: store.name, locale: "en_GB", url: siteUrl, images: [{ url: "/opengraph-image", width: 1200, height: 630 }] },
+  openGraph: { type: "website", siteName: store.name, locale: "en_GB", url: siteUrl },
   twitter: { card: "summary_large_image" },
-  alternates: { canonical: "/" },
   formatDetection: { telephone: false },
 };
 
@@ -26,7 +25,10 @@ export const viewport: Viewport = { themeColor: "#0d3b2e", width: "device-width"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-GB" className={inter.variable}>
+    <html lang="en-GB" className={inter.variable} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `if(document.cookie.indexOf("cl_consent=")>-1)document.documentElement.setAttribute("data-consent","1")` }} />
+      </head>
       <body className="min-h-dvh font-sans">
         <Providers>
           {children}

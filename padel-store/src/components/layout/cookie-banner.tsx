@@ -21,10 +21,12 @@ export function CookieBanner() {
     }
   }, [bannerOpen, consent]);
 
-  if (!ready || !bannerOpen) return null;
+  // Before hydration the banner is server-rendered for everyone (fast paint, no layout shift);
+  // an inline script hides it pre-paint when a consent cookie already exists.
+  if (ready && !bannerOpen) return null;
 
   return (
-    <div role="dialog" aria-modal="false" aria-labelledby="cookie-title" className="fixed inset-x-0 bottom-0 z-[60] p-3 sm:p-4">
+    <div id="cookie-banner" data-initial={ready ? undefined : ""} role="dialog" aria-modal="false" aria-labelledby="cookie-title" className="fixed inset-x-0 bottom-0 z-[60] p-3 sm:p-4">
       <div className="mx-auto max-w-3xl rounded-2xl border border-line bg-white p-5 shadow-2xl">
         <h2 id="cookie-title" ref={headingRef} className="text-base font-bold">
           Your privacy choices

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LoginForm } from "./login-form";
 import { features } from "@/lib/config";
 
-export const metadata: Metadata = { title: "Sign in", robots: { index: false } };
+export const metadata: Metadata = { title: "Sign in", description: "Sign in to your Courtline Padel account to track orders, reorder in one tap and check out faster." };
 
 type Props = { searchParams: Promise<{ callbackUrl?: string; check?: string; error?: string }> };
 
