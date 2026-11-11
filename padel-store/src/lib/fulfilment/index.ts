@@ -26,7 +26,11 @@ async function loadForFulfilment(orderId: string) {
 
 type FulfilmentOrder = Awaited<ReturnType<typeof loadForFulfilment>>;
 
-export function toSlipOrder(o: Pick<FulfilmentOrder, "number" | "createdAt" | "email" | "shippingMethod" | "shippingAddress" | "customerNote" | "items" | "total">): SlipOrder {
+export function toSlipOrder(
+  o: Pick<FulfilmentOrder, "number" | "createdAt" | "email" | "shippingMethod" | "shippingAddress" | "customerNote" | "total"> & {
+    items: { name: string; variantName: string; sku: string; quantity: number; unitPrice: number }[];
+  },
+): SlipOrder {
   return {
     number: formatOrderNumber(o.number),
     createdAt: o.createdAt,

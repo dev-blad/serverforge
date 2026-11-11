@@ -317,7 +317,7 @@ async function main() {
   for (let d = 75; d >= 0; d--) {
     const visitors = Math.round(70 + (75 - d) * 1.4 + rand() * 50);
     for (let v = 0; v < visitors; v++) {
-      const hash = createHash("sha256").update(`seed-${d}-${v}`).digest("hex").slice(0, 32);
+      const hash = `seed${createHash("sha256").update(`seed-${d}-${v}`).digest("hex").slice(0, 28)}`;
       const at = daysAgo(d);
       const views = int(1, 5);
       for (let i = 0; i < views; i++) {
