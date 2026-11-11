@@ -55,7 +55,7 @@ export function CookieBanner() {
             <label className="flex items-start gap-3">
               <input type="checkbox" className="mt-1 size-4 accent-brand-900" checked={functional} onChange={(e) => setFunctional(e.target.checked)} />
               <span>
-                <strong>Functional</strong> — third-party live chat (if enabled) and embedded maps.
+                <strong>Functional</strong> — “recently viewed” products and third-party live chat (if enabled).
               </span>
             </label>
             <label className="flex items-start gap-3">

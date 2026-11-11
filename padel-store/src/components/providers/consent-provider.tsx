@@ -56,6 +56,13 @@ export function ConsentProvider({ children }: { children: React.ReactNode }) {
     const withdrawn = consent && ((consent.analytics && !c.analytics) || (consent.functional && !c.functional));
     setConsent(full);
     setBannerOpen(false);
+    if (!c.functional) {
+      try {
+        localStorage.removeItem("cl_recent");
+      } catch {
+        /* ignore */
+      }
+    }
     // Already-loaded third-party scripts can only be removed by reloading.
     if (withdrawn) location.reload();
   }, [consent]);
