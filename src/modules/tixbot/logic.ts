@@ -13,6 +13,10 @@ export interface TixbotTicketTypeConfig {
   emoji: string;
   description: string | null;
   categoryId: string | null;
+  /** Embed TixBot posts inside new tickets of this type (TixBot variables like {user}). */
+  welcome?: EmbedPayload | null;
+  /** First plain message in new tickets (usually pings the support role). */
+  notification?: string | null;
 }
 
 /** Per-guild config stored by the installer (Discord ids, not template keys). */
@@ -85,6 +89,8 @@ export interface SetupResult {
   panelId: number;
   ticketTypeIds: number[];
   createdTypes: number;
+  /** Whether the dropdown panel was (re-)posted. */
+  deployed: boolean;
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -98,7 +104,7 @@ export async function runTixbotSetup(
   api: TixbotApi,
   guildId: string,
   config: TixbotRuntimeConfig,
-  options: { deployRetries?: number; retryDelayMs?: number } = {},
+  options: { deployRetries?: number; retryDelayMs?: number; deployPanel?: boolean } = {},
 ): Promise<SetupResult> {
   await api.saveConfig(guildId, tixbotGuildSettings(config));
 
@@ -125,6 +131,8 @@ export async function runTixbotSetup(
       enabled: true,
       // Per-type categories are a TixBot Pro feature; free servers use l1_category_id.
       target_category_id: type.categoryId ?? config.ticketCategoryId,
+      ...(type.welcome ? { ticket_message: { embeds: [toTixbotEmbed(type.welcome)] } } : {}),
+      ...(type.notification ? { notification_message: type.notification } : {}),
     });
     ticketTypeIds.push(id);
   }
@@ -148,6 +156,10 @@ export async function runTixbotSetup(
     if (!onPanel.has(typeId)) await api.addPanelOption(guildId, panelId, typeId, index);
   }
 
+  // A re-run only refreshes settings and messages; the panel is already posted.
+  if (options.deployPanel === false)
+    return { panelId, ticketTypeIds, createdTypes, deployed: false };
+
   // TixBot may not have this guild/channel cached for a few seconds after joining.
   const retries = options.deployRetries ?? 5;
   for (let attempt = 0; ; attempt += 1) {
@@ -161,7 +173,7 @@ export async function runTixbotSetup(
     }
   }
 
-  return { panelId, ticketTypeIds, createdTypes };
+  return { panelId, ticketTypeIds, createdTypes, deployed: true };
 }
 
 /** TixBot invite that opens with the customer's server pre-selected. */

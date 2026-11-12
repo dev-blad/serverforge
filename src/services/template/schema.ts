@@ -268,6 +268,13 @@ export const tixbotTicketTypeSchema = z.strictObject({
   description: z.string().max(100).optional(),
   /** Category key tickets of this type open in (TixBot Pro; free TixBot uses ticketCategory). */
   category: keySchema.optional(),
+  /**
+   * Embed posted inside each new ticket of this type. TixBot fills {user}, {user.name},
+   * {ticket_number}, {server} and {support} when the ticket opens.
+   */
+  welcome: embedSchema.optional(),
+  /** Plain message (ping) posted first in the ticket. Same TixBot variables. */
+  notification: z.string().min(1).max(2000).optional(),
 });
 export type TixbotTicketTypeSpec = z.infer<typeof tixbotTicketTypeSchema>;
 

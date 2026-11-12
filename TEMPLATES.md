@@ -374,13 +374,26 @@ tixbot:
   placeholder: Choose Ticket
   panelEmbed: { author: '{{serverName}}', title: '{{serverName}} Support', description: '…' }
   ticketTypes: # 1–25 dropdown options
-    - { key: sales, name: Sales Enquiries, emoji: '🛒', description: '…', category: sales }
+    - key: sales
+      name: Sales Enquiries
+      emoji: '🛒'
+      description: '…' # shown under the option in the menu
+      category: sales # TixBot Pro: tickets of this type open here
+      notification: '{support} — new sale from {user}' # first message (ping)
+      welcome: # embed posted inside each new ticket
+        title: '🛒 Sales Enquiry'
+        description: "Hi {user}!\n`Ticket :` #{ticket_number}"
 ```
+
+`welcome` and `notification` use **TixBot's** variables (single braces), filled when a ticket
+opens: `{user}`, `{user.name}`, `{ticket_number}`, `{server}`, `{support}`. ServerForge
+placeholders (`{{serverName}}`, `{{brandColor}}`…) still work alongside them.
 
 ServerForge posts the staff embed during the build. When TixBot joins (or an admin clicks **Set up
 tickets now**), ServerForge configures TixBot through its API — roles, categories, transcripts,
 ticket types — and posts the dropdown panel, then reports back in `setupChannel`. Re-running is
-safe (types are matched by name). Per-type `category` needs TixBot Pro; on the free plan every
+safe (types are matched by name); once the menu is posted, re-runs only refresh TixBot's
+settings and ticket messages instead of posting a second menu. Per-type `category` needs TixBot Pro; on the free plan every
 ticket opens in `ticketCategory`. Requires `TIXBOT_API_URL` and `TIXBOT_API_KEY` on the bot.
 
 ---

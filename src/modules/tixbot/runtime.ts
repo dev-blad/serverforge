@@ -81,7 +81,10 @@ export async function setUpTixbot(
   try {
     await grantTixbotAccess(guild, config);
     const api = new TixbotApi(TIXBOT_API_URL, TIXBOT_API_KEY);
-    const result = await runTixbotSetup(api, guild.id, config);
+    // Once the panel is up, re-runs only refresh TixBot's settings and ticket messages.
+    const result = await runTixbotSetup(api, guild.id, config, {
+      deployPanel: !config.completedAt,
+    });
 
     const record = await ctx.db.modules.get(guild.id, 'tixbot');
     if (record) {
@@ -96,6 +99,15 @@ export async function setUpTixbot(
       ctx.moduleConfig.invalidate(guild.id);
     }
     logger.info(result, 'TixBot setup complete');
+
+    if (!result.deployed) {
+      await postToSetupChannel(guild, config, {
+        title: '🔄 TixBot settings refreshed',
+        color: 0x2ecc71,
+        description: `Ticket types, roles, categories and ticket messages were updated. The existing menu in <#${config.panelChannelId}> was kept.`,
+      });
+      return '✅ TixBot settings and ticket messages refreshed.';
+    }
 
     await postToSetupChannel(guild, config, {
       title: '✅ Tickets are live',

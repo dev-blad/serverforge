@@ -191,6 +191,33 @@ describe('TixBot setup', () => {
     expect(tb.options[9]).toEqual([7, result.ticketTypeIds[1]]);
   });
 
+  it('sends each ticket type its welcome embed and ping, and can skip re-posting the panel', async () => {
+    const tb = fakeTixbot();
+    const cfg = config();
+    cfg.ticketTypes[0]!.welcome = {
+      title: '🛒 Sales Enquiry',
+      description: '`Ticket :` #{ticket_number}',
+      color: 1,
+    };
+    cfg.ticketTypes[0]!.notification = '{support} — new sale from {user}';
+    const result = await runTixbotSetup(tb.api, GUILD, cfg, { deployPanel: false });
+    expect(result.deployed).toBe(false);
+    expect(tb.calls.some((c) => c.path.startsWith('/api/deploy-dropdown-panel'))).toBe(false);
+    const update = tb.calls.find(
+      (c) => c.method === 'PATCH' && c.path === `/api/ticket-types/${result.ticketTypeIds[0]}`,
+    );
+    expect(update?.body).toMatchObject({
+      ticket_message: {
+        embeds: [{ title: '🛒 Sales Enquiry', description: '`Ticket :` #{ticket_number}' }],
+      },
+      notification_message: '{support} — new sale from {user}',
+    });
+    const plain = tb.calls.find(
+      (c) => c.method === 'PATCH' && c.path === `/api/ticket-types/${result.ticketTypeIds[1]}`,
+    );
+    expect(plain?.body).not.toHaveProperty('ticket_message');
+  });
+
   it('retries the panel post while TixBot is still loading the server', async () => {
     const tb = fakeTixbot();
     tb.failDeploys(2);
@@ -242,6 +269,12 @@ describe('tixbot module install', () => {
     ]);
     expect(cfg.ticketTypes[0]!.categoryId).toBe(guild.channelByName('Sales Enquiries')!.id);
     expect(cfg.panelEmbed.title).toBe('Test Server Support');
+    // TixBot variables survive; ServerForge placeholders are rendered.
+    expect(cfg.ticketTypes[0]!.welcome?.description).toContain(
+      '`Ticket      :` **#{ticket_number}**',
+    );
+    expect(cfg.ticketTypes[0]!.welcome?.author).toBe('Test Server');
+    expect(cfg.ticketTypes[0]!.notification).toBe('{support} — new **Sales enquiry** from {user}');
     expect(cfg.completedAt).toBeNull();
 
     const setup = [...guild.messages.values()].find(

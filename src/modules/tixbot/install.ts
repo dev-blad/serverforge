@@ -74,6 +74,8 @@ export const installTixbot: ModuleInstaller = async (ctx) => {
       emoji: t.emoji,
       description: t.description ?? null,
       categoryId: optional(t.category),
+      welcome: t.welcome ? embedPayload(t.welcome, ctx.ids) : null,
+      notification: t.notification ?? null,
     })),
     completedAt: (previous?.config['completedAt'] as string | null | undefined) ?? null,
     panelId: (previous?.config['panelId'] as number | null | undefined) ?? null,

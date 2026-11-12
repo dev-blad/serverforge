@@ -469,13 +469,75 @@ modules:
         emoji: '🛒'
         description: Pricing, products and placing an order
         category: sales-enquiries
+        notification: '{support} — new **Sales enquiry** from {user}'
+        welcome:
+          author: '{{serverName}}'
+          title: '🛒 Sales Enquiry'
+          color: '{{brandColor}}'
+          description: |-
+            Hi {user}, thanks for getting in touch with **{server}**!
+
+            `Ticket      :` **#{ticket_number}**
+            `Customer    :` {user}
+            `Department  :` Sales
+            `Status      :` 🟢 Open
+            `Response    :` Usually within 24 hours
+
+            **To help us quote you quickly, please include:**
+            › What you'd like to buy
+            › Quantity, package or options
+            › Any deadline or delivery details
+
+            A member of {support} will be with you shortly.
+          footer: '{{serverName}} • Ticket #{ticket_number}'
       - key: support
         name: Support Tickets
         emoji: '🛠️'
         description: Help with an order, delivery or payment
         category: support-tickets-basic
+        notification: '{support} — new **support ticket** from {user}'
+        welcome:
+          author: '{{serverName}}'
+          title: '🛠️ Support Ticket'
+          color: '{{brandColor}}'
+          description: |-
+            Hi {user}, sorry you're having trouble — we're here to help.
+
+            `Ticket      :` **#{ticket_number}**
+            `Customer    :` {user}
+            `Department  :` Support
+            `Status      :` 🟢 Open
+            `Response    :` Usually within 24 hours
+
+            **So we can sort this quickly, please include:**
+            › Your order number or payment reference
+            › What went wrong, and when
+            › Screenshots, if you have them
+
+            A member of {support} will be with you shortly.
+          footer: '{{serverName}} • Ticket #{ticket_number}'
       - key: other
         name: Edit as Required
         emoji: '✏️'
         description: Anything else
         category: edit-as-required
+        notification: '{support} — new **ticket** from {user}'
+        welcome:
+          author: '{{serverName}}'
+          title: '✏️ New Ticket'
+          color: '{{brandColor}}'
+          description: |-
+            Hi {user}, thanks for reaching out to **{server}**.
+
+            `Ticket      :` **#{ticket_number}**
+            `Customer    :` {user}
+            `Department  :` General
+            `Status      :` 🟢 Open
+            `Response    :` Usually within 24 hours
+
+            **Please tell us:**
+            › What you need help with
+            › Any details, links or screenshots that help
+
+            A member of {support} will be with you shortly.
+          footer: '{{serverName}} • Ticket #{ticket_number}'
