@@ -243,16 +243,16 @@ describe('capture', () => {
     expect(validateCaptured(result, existing).join()).toMatch(/duplicate template id "pro"/);
   });
 
-  it('CaptureService writes the file and refuses to overwrite', async () => {
+  it('CaptureService writes the file and replaces an earlier capture of the same id', async () => {
     const dir = await mkdtemp(path.join(os.tmpdir(), 'sf-capture-'));
     try {
       const service = new CaptureService(dir, silentLogger);
       const outcome = await service.capture(source(), { id: 'lab', tier: 'starter' });
       expect(outcome.writtenTo).toBe(path.join(dir, 'captured', 'lab.yaml'));
       expect(await readFile(outcome.writtenTo!, 'utf8')).toContain('id: lab');
-      await expect(service.capture(source(), { id: 'lab', tier: 'starter' })).rejects.toThrow(
-        /not make a valid template/,
-      );
+      const again = await service.capture(source(), { id: 'lab', name: 'Lab v2', tier: 'starter' });
+      expect(again.writtenTo).toBe(outcome.writtenTo);
+      expect(await readFile(again.writtenTo!, 'utf8')).toContain('Lab v2');
       await expect(service.capture(source(), { id: 'Bad Id', tier: 'starter' })).rejects.toThrow(
         /lowercase/,
       );

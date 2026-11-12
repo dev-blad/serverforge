@@ -35,7 +35,13 @@ export class CaptureService {
       name: options.name?.trim() || source.guildName,
       tier: options.tier,
     });
-    const existing = await readTemplateFiles(this.templatesDir);
+    const fileName = `${id}.yaml`;
+    const dir = path.join(this.templatesDir, 'captured');
+    // Re-capturing the same id replaces the earlier capture instead of clashing with it.
+    const previous = path.resolve(dir, fileName);
+    const existing = (await readTemplateFiles(this.templatesDir)).filter(
+      (f) => path.resolve(f.file) !== previous,
+    );
     const problems = validateCaptured(result, existing);
     if (problems.length) {
       throw new UserFacingError('The captured server does not make a valid template yet.', {
@@ -43,12 +49,10 @@ export class CaptureService {
         details: problems.slice(0, 10),
       });
     }
-    const fileName = `${id}.yaml`;
-    const dir = path.join(this.templatesDir, 'captured');
     let writtenTo: string | null = null;
     try {
       await mkdir(dir, { recursive: true });
-      await writeFile(path.join(dir, fileName), result.yaml, { flag: 'wx' });
+      await writeFile(path.join(dir, fileName), result.yaml);
       writtenTo = path.join(dir, fileName);
     } catch (error) {
       this.logger.warn({ err: error, dir }, 'could not write captured template to disk');
