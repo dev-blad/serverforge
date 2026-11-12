@@ -58,6 +58,10 @@ export const helpCommand: SlashCommand = {
         features.push(
           '🎫 Members open private tickets from the support panel; closing saves a transcript.',
         );
+      if (status.modules.includes('tixbot'))
+        features.push(
+          '🎫 Tickets run on TixBot — add it with the button in your staff channel and it sets itself up.',
+        );
       if (status.modules.includes('memberStats'))
         features.push('📊 The member-count channel updates automatically (max every ~5 minutes).');
       if (features.length) embed.addFields({ name: 'Your features', value: features.join('\n') });

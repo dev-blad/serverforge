@@ -25,7 +25,7 @@ describe('command definitions', () => {
       ...moduleRuntimes.flatMap((r) => r.components?.map((h) => h.area) ?? []),
     ];
     expect(new Set(areas).size).toBe(areas.length);
-    expect(areas.sort()).toEqual(['br', 'keys', 'setup', 'ticket', 'verify']);
+    expect(areas.sort()).toEqual(['br', 'keys', 'setup', 'ticket', 'tixbot', 'verify']);
   });
 });
 

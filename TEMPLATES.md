@@ -358,6 +358,31 @@ memberStats:
 Discord only allows ~2 renames per channel per 10 minutes, so updates are coalesced (at most one every
 ~5.5 minutes per server).
 
+### `tixbot` — tickets run by TixBot
+
+```yaml
+tixbot:
+  setupChannel: staff-chat # staff embed with "Add TixBot" + "Set up tickets now"
+  panelChannel: support-info # where the ticket dropdown is posted
+  staffRole: support-agent # TixBot's support role
+  escalationRole: team # optional
+  ticketCategory: support-tickets # new tickets open here
+  escalationCategory: escalated # optional
+  closedCategory: closed-tickets # optional
+  transcriptChannel: transcripts # optional
+  notificationsChannel: bot-logs # optional
+  placeholder: Choose Ticket
+  panelEmbed: { author: '{{serverName}}', title: '{{serverName}} Support', description: '…' }
+  ticketTypes: # 1–25 dropdown options
+    - { key: sales, name: Sales Enquiries, emoji: '🛒', description: '…', category: sales }
+```
+
+ServerForge posts the staff embed during the build. When TixBot joins (or an admin clicks **Set up
+tickets now**), ServerForge configures TixBot through its API — roles, categories, transcripts,
+ticket types — and posts the dropdown panel, then reports back in `setupChannel`. Re-running is
+safe (types are matched by name). Per-type `category` needs TixBot Pro; on the free plan every
+ticket opens in `ticketCategory`. Requires `TIXBOT_API_URL` and `TIXBOT_API_KEY` on the bot.
+
 ---
 
 ## Community features

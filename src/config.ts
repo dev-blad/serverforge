@@ -37,6 +37,17 @@ export const botConfigSchema = baseConfigSchema.extend({
   DEV_GUILD_ID: optionalSnowflake,
   OWNER_USER_ID: snowflake,
   ADMIN_GUILD_ID: snowflake,
+  /** TixBot bot API (e.g. https://tixbot-production.up.railway.app). Enables automatic ticket setup. */
+  TIXBOT_API_URL: z
+    .string()
+    .optional()
+    .transform((v) => (v && v.trim() !== '' ? v.trim().replace(/\/+$/, '') : undefined))
+    .pipe(z.url().optional()),
+  /** The TixBot bot's BOT_API_SECRET. */
+  TIXBOT_API_KEY: z
+    .string()
+    .optional()
+    .transform((v) => (v && v.trim() !== '' ? v.trim() : undefined)),
   /** Register slash commands automatically on startup (set to "false" to manage them manually). */
   AUTO_REGISTER_COMMANDS: z
     .string()

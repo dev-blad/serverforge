@@ -265,6 +265,24 @@ export function validateSemantics(template: Template): string[] {
   if (m.memberStats) {
     checkChannel(m.memberStats.channel, 'modules.memberStats.channel', ['voice']);
   }
+  if (m.tixbot) {
+    const t = m.tixbot;
+    checkChannel(t.setupChannel, 'modules.tixbot.setupChannel', TEXT_LIKE);
+    checkChannel(t.panelChannel, 'modules.tixbot.panelChannel', TEXT_LIKE);
+    checkRole(t.staffRole, 'modules.tixbot.staffRole');
+    if (t.escalationRole) checkRole(t.escalationRole, 'modules.tixbot.escalationRole');
+    checkChannel(t.ticketCategory, 'modules.tixbot.ticketCategory', ['category']);
+    checkChannel(t.escalationCategory, 'modules.tixbot.escalationCategory', ['category']);
+    checkChannel(t.closedCategory, 'modules.tixbot.closedCategory', ['category']);
+    checkChannel(t.transcriptChannel, 'modules.tixbot.transcriptChannel', TEXT_LIKE);
+    checkChannel(t.notificationsChannel, 'modules.tixbot.notificationsChannel', TEXT_LIKE);
+    const seen = new Set<string>();
+    for (const type of t.ticketTypes) {
+      if (seen.has(type.key)) errors.push(`modules.tixbot.ticketTypes[${type.key}]: duplicate key`);
+      seen.add(type.key);
+      checkChannel(type.category, `modules.tixbot.ticketTypes[${type.key}].category`, ['category']);
+    }
+  }
 
   // Placeholders
   const strings: { path: string; text: string }[] = [];

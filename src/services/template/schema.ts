@@ -260,6 +260,45 @@ export const memberStatsModuleSchema = z.strictObject({
   includeBots: z.boolean().default(false),
 });
 
+export const tixbotTicketTypeSchema = z.strictObject({
+  key: keySchema,
+  name: z.string().min(1).max(100),
+  emoji: z.string().min(1).max(64).default('🎫'),
+  /** Shown under the option in the dropdown (Discord limit 100). */
+  description: z.string().max(100).optional(),
+  /** Category key tickets of this type open in (TixBot Pro; free TixBot uses ticketCategory). */
+  category: keySchema.optional(),
+});
+export type TixbotTicketTypeSpec = z.infer<typeof tixbotTicketTypeSchema>;
+
+/**
+ * Tickets run by TixBot. ServerForge posts an "Add TixBot" embed for staff; once TixBot is in
+ * the server it configures TixBot through its API (roles, categories, ticket types) and posts a
+ * dropdown ticket panel.
+ */
+export const tixbotModuleSchema = z.strictObject({
+  ...moduleBase,
+  /** Staff channel for the "Add TixBot / Set up tickets" embed and the result. */
+  setupChannel: keySchema,
+  /** Channel the dropdown ticket panel is posted in. */
+  panelChannel: keySchema,
+  /** Role that handles tickets (TixBot level-1 support role). */
+  staffRole: keySchema,
+  /** Role tickets are escalated to. */
+  escalationRole: keySchema.optional(),
+  /** Category new tickets open in. */
+  ticketCategory: keySchema,
+  escalationCategory: keySchema.optional(),
+  /** Category closed tickets are moved to. */
+  closedCategory: keySchema.optional(),
+  transcriptChannel: keySchema.optional(),
+  /** Channel TixBot posts its notifications to. */
+  notificationsChannel: keySchema.optional(),
+  placeholder: z.string().min(1).max(150).default('Choose Ticket'),
+  panelEmbed: embedSchema,
+  ticketTypes: z.array(tixbotTicketTypeSchema).min(1).max(25),
+});
+
 export const modulesSchema = z
   .strictObject({
     autoRole: autoRoleModuleSchema.optional(),
@@ -269,6 +308,7 @@ export const modulesSchema = z
     automod: automodModuleSchema.optional(),
     tickets: ticketsModuleSchema.optional(),
     memberStats: memberStatsModuleSchema.optional(),
+    tixbot: tixbotModuleSchema.optional(),
   })
   .default({});
 
@@ -282,6 +322,7 @@ export const MODULE_IDS: ModuleId[] = [
   'automod',
   'tickets',
   'memberStats',
+  'tixbot',
 ];
 export type AutoRoleConfig = z.infer<typeof autoRoleModuleSchema>;
 export type VerificationConfig = z.infer<typeof verificationModuleSchema>;
@@ -290,6 +331,7 @@ export type LoggingConfig = z.infer<typeof loggingModuleSchema>;
 export type AutomodConfig = z.infer<typeof automodModuleSchema>;
 export type TicketsConfig = z.infer<typeof ticketsModuleSchema>;
 export type MemberStatsConfig = z.infer<typeof memberStatsModuleSchema>;
+export type TixbotConfig = z.infer<typeof tixbotModuleSchema>;
 
 // ─── Template ───────────────────────────────────────────────────────────────
 

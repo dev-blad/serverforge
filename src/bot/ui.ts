@@ -22,6 +22,7 @@ export const MODULE_LABELS: Record<ModuleId, string> = {
   automod: '🛡️ AutoMod rules',
   tickets: '🎫 Tickets & transcripts',
   memberStats: '📊 Member count stats',
+  tixbot: '🎫 TixBot tickets (auto setup)',
 };
 
 export function errorEmbed(

@@ -5,7 +5,8 @@
 #   • "Feature Requests/Bug Reports" category is now "Edit as Required"
 #   • the staff team role is named after the buyer's server
 #   • TixBot's plan roles replaced with shop roles (VIP, Customer, Partner)
-#   • tickets are run by TixBot: staff get a one-click "Add TixBot" button
+#   • tickets run on TixBot: staff click "Add TixBot" and ServerForge sets it up
+#     (ticket types, staff role, categories, transcripts and the ticket menu)
 # ─────────────────────────────────────────────────────────────────────────────
 id: shop
 name: Shop
@@ -425,37 +426,6 @@ messages:
           **3.** Open one ticket per issue and describe it in full.
           **4.** Please be patient — a {{role:support-agent}} will reply as soon as possible.
 
-  - key: support-info
-    channel: support-info
-    pin: true
-    embeds:
-      - title: 'Support'
-        color: '{{brandColor}}'
-        description: |-
-          Need help with an order, a payment or anything else? Open a private ticket and our team will be with you shortly.
-
-          Please read {{channel:before-you-ticket}} first.
-
-  # Staff-only: one click installs TixBot into this server for the ticket system.
-  - key: install-tixbot
-    channel: staff-chat
-    embeds:
-      - title: '🎫 Set up tickets with TixBot'
-        color: '{{brandColor}}'
-        description: |-
-          Your server comes ready for tickets: the **Sales Enquiries**, **Support Tickets**, **Edit as Required** and **Closed Tickets** categories are already in place.
-
-          **1.** Click **Add TixBot** below (this server is already selected).
-          **2.** In the TixBot dashboard, create your ticket panel in {{channel:support-info}} and point each ticket type at the matching category.
-          **3.** Send transcripts to {{channel:transcripts}}.
-        footer: 'Only server admins can add bots.'
-    links:
-      - label: Add TixBot
-        emoji: '🎫'
-        url: 'https://discord.com/oauth2/authorize?client_id=1470445718400663716&permissions=268823632&integration_type=0&scope=bot+applications.commands&guild_id={{guildId}}&disable_guild_select=true'
-      - label: TixBot dashboard
-        url: 'https://tixbot.gg/dashboard'
-
 modules:
   autoRole:
     memberRole: member
@@ -463,3 +433,49 @@ modules:
   logging:
     modLog: bot-logs
     joinLeaveLog: bot-logs
+  tixbot:
+    setupChannel: staff-chat
+    panelChannel: support-info
+    staffRole: support-agent
+    escalationRole: team
+    ticketCategory: support-tickets-basic
+    escalationCategory: support-tickets-escalated
+    closedCategory: closed-tickets
+    transcriptChannel: transcripts
+    notificationsChannel: bot-logs
+    placeholder: Choose Ticket
+    panelEmbed:
+      author: '{{serverName}}'
+      title: '{{serverName}} Support'
+      color: '{{brandColor}}'
+      description: |-
+        Need help? Select a category below and a ticket will be opened for you.
+
+        🛒 **Sales Enquiries**
+        Product questions, pricing, availability and placing an order.
+
+        🛠️ **Support Tickets**
+        Help with an existing order, delivery, payment or your account.
+
+        ✏️ **Edit as Required**
+        Anything else — rename this option in the TixBot dashboard to suit your shop.
+
+        > 💬 Please be as descriptive as possible — it helps us resolve your enquiry faster.
+        > ⏱️ Average response time: **under 24 hours**
+      footer: '{{serverName}}'
+    ticketTypes:
+      - key: sales
+        name: Sales Enquiries
+        emoji: '🛒'
+        description: Pricing, products and placing an order
+        category: sales-enquiries
+      - key: support
+        name: Support Tickets
+        emoji: '🛠️'
+        description: Help with an order, delivery or payment
+        category: support-tickets-basic
+      - key: other
+        name: Edit as Required
+        emoji: '✏️'
+        description: Anything else
+        category: edit-as-required

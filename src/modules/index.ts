@@ -10,6 +10,8 @@ import { memberStatsRuntime } from './memberStats/runtime.js';
 import type { ModuleRuntime } from './runtimeTypes.js';
 import { installTickets } from './tickets/install.js';
 import { ticketsRuntime } from './tickets/runtime.js';
+import { installTixbot } from './tixbot/install.js';
+import { tixbotRuntime } from './tixbot/runtime.js';
 import type { ModuleInstallers } from './types.js';
 import { installVerification } from './verification/install.js';
 import { verificationRuntime } from './verification/runtime.js';
@@ -29,6 +31,7 @@ export const moduleInstallers: ModuleInstallers = {
   automod: installAutomod,
   tickets: installTickets,
   memberStats: installMemberStats,
+  tixbot: installTixbot,
 };
 
 /** AutoMod is enforced natively by Discord, so it has no runtime component. */
@@ -39,4 +42,5 @@ export const moduleRuntimes: ModuleRuntime[] = [
   loggingRuntime,
   ticketsRuntime,
   memberStatsRuntime,
+  tixbotRuntime,
 ];
