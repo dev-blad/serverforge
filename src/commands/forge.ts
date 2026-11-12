@@ -145,9 +145,25 @@ async function capture(interaction: Parameters<SlashCommand['execute']>[0], ctx:
   ];
   if (outcome.warnings.length)
     lines.push('', '**Notes**', ...outcome.warnings.map((w) => `• ${w}`));
+  const file = () =>
+    new AttachmentBuilder(Buffer.from(outcome.yaml, 'utf8'), { name: outcome.fileName });
+  // The reply is ephemeral and vanishes, so also DM a copy that stays in the seller's DMs.
+  const dmed = await interaction.user
+    .send({
+      content: `📸 Template **${outcome.fileName}** captured from **${target.name}**.`,
+      files: [file()],
+    })
+    .then(() => true)
+    .catch(() => false);
+  lines.push(
+    '',
+    dmed
+      ? 'A copy of the file was sent to your DMs.'
+      : "Couldn't DM you a copy (are your DMs closed?) — download the file below now.",
+  );
   await interaction.editReply({
     embeds: [infoEmbed(lines.join('\n'), '📸 Template captured')],
-    files: [new AttachmentBuilder(Buffer.from(outcome.yaml, 'utf8'), { name: outcome.fileName })],
+    files: [file()],
   });
 }
 
