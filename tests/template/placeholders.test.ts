@@ -33,6 +33,11 @@ describe('placeholders', () => {
     expect(renderString('{{channel:rules}} {{user}}', values)).toBe('{{channel:rules}} {{user}}');
   });
 
+  it('fills {{guildId}} with the server being built', () => {
+    const values = customerValues({ ...options, guildId: '123' }, 'Starter');
+    expect(renderString('invite?guild_id={{guildId}}', values)).toBe('invite?guild_id=123');
+  });
+
   it('derives brand colour shades', () => {
     const values = customerValues(options, 'Elite');
     expect(values.brandColor).toBe('#FF0000');

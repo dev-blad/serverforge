@@ -28,11 +28,19 @@ export interface ButtonPayload {
   style: ButtonStyleName;
 }
 
+export interface LinkButtonPayload {
+  label: string;
+  url: string;
+  emoji?: string;
+}
+
 export interface MessagePayload {
   content?: string;
   embeds?: EmbedPayload[];
   /** Buttons; automatically split into rows of 5. */
   buttons?: ButtonPayload[];
+  /** Link buttons, shown in a row after any other buttons. */
+  links?: LinkButtonPayload[];
   files?: { name: string; data: Buffer }[];
   /** Don't ping anyone mentioned in content. */
   silentMentions?: boolean;

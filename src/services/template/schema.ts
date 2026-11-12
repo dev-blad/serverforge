@@ -125,6 +125,17 @@ export const messageSchema = z.strictObject({
   channel: keySchema,
   content: z.string().max(2000).optional(),
   embeds: z.array(embedSchema).max(10).default([]),
+  /** Link buttons under the message (e.g. "Add TixBot"), up to 5 in one row. */
+  links: z
+    .array(
+      z.strictObject({
+        label: z.string().min(1).max(80),
+        url: z.string().regex(/^https:\/\/\S+$/, 'must be an https:// link'),
+        emoji: z.string().max(64).optional(),
+      }),
+    )
+    .max(5)
+    .default([]),
   /** Pin the message after posting. */
   pin: z.boolean().default(false),
 });

@@ -92,9 +92,39 @@ describe('discord payload conversion', () => {
     ).toEqual({ title: 'x', description: 'see <#1>' });
     expect(
       messagePayload(
-        { key: 'm', channel: 'c', content: '{{channel:rules}}', embeds: [], pin: false },
+        { key: 'm', channel: 'c', content: '{{channel:rules}}', embeds: [], links: [], pin: false },
         ids,
       ),
     ).toEqual({ content: '<#1>', embeds: [] });
+    expect(
+      messagePayload(
+        {
+          key: 'm',
+          channel: 'c',
+          embeds: [{ title: 'x', fields: [] }],
+          links: [{ label: 'Add TixBot', url: 'https://example.com', emoji: '🎫' }],
+          pin: false,
+        },
+        ids,
+      ).links,
+    ).toEqual([{ label: 'Add TixBot', url: 'https://example.com', emoji: '🎫' }]);
+  });
+
+  it('adds link buttons in their own row after other buttons', () => {
+    const message = toDiscordMessage({
+      content: 'hi',
+      buttons: [{ customId: 'sf:a:b', label: 'A', style: 'primary' }],
+      links: [{ label: 'Add TixBot', url: 'https://example.com/invite', emoji: '🎫' }],
+    });
+    const rows = message.components as ActionRowBuilder<ButtonBuilder>[];
+    expect(rows).toHaveLength(2);
+    const link = rows[1]!.components[0]!.toJSON() as {
+      style: number;
+      url?: string;
+      label?: string;
+    };
+    expect(link.style).toBe(5); // ButtonStyle.Link
+    expect(link.url).toBe('https://example.com/invite');
+    expect(link.label).toBe('Add TixBot');
   });
 });

@@ -33,6 +33,7 @@ export function embedPayload(spec: EmbedSpec, ids: ReferenceIds): EmbedPayload {
 export function messagePayload(spec: MessageSpec, ids: ReferenceIds): MessagePayload {
   const payload: MessagePayload = { embeds: spec.embeds.map((e) => embedPayload(e, ids)) };
   if (spec.content) payload.content = renderReferencesDeep(spec.content, ids);
+  if (spec.links.length) payload.links = spec.links.map((l) => ({ ...l }));
   return payload;
 }
 

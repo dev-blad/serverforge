@@ -239,6 +239,7 @@ export class SetupService {
       brandColor: options.brandColor,
       ownerId: guild.ownerId,
       ownerName: guild.ownerName,
+      guildId: guild.id,
     });
   }
 

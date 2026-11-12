@@ -15,6 +15,8 @@ export interface CustomerOptions {
   brandColor: string;
   ownerId: string;
   ownerName: string;
+  /** Discord id of the server being built (e.g. to pre-select it in a bot invite link). */
+  guildId?: string;
 }
 
 export const CUSTOMER_PLACEHOLDERS = [
@@ -26,6 +28,7 @@ export const CUSTOMER_PLACEHOLDERS = [
   'ownerName',
   'tierName',
   'year',
+  'guildId',
 ] as const;
 export type CustomerPlaceholder = (typeof CUSTOMER_PLACEHOLDERS)[number];
 
@@ -98,6 +101,7 @@ export function customerValues(
     ownerName: options.ownerName,
     tierName,
     year: String(now.getUTCFullYear()),
+    guildId: options.guildId ?? '',
   };
 }
 

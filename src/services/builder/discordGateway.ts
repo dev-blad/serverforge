@@ -121,6 +121,18 @@ export function toDiscordMessage(payload: MessagePayload): MessageCreateOptions 
     });
     options.components = rows;
   }
+  if (payload.links?.length) {
+    const row = new ActionRowBuilder<ButtonBuilder>();
+    for (const link of payload.links.slice(0, 5)) {
+      const button = new ButtonBuilder()
+        .setStyle(ButtonStyle.Link)
+        .setLabel(link.label)
+        .setURL(link.url);
+      if (link.emoji) button.setEmoji(link.emoji);
+      row.addComponents(button);
+    }
+    options.components = [...(options.components ?? []), row].slice(0, 5);
+  }
   if (payload.files?.length)
     options.files = payload.files.map((f) => new AttachmentBuilder(f.data, { name: f.name }));
   if (payload.silentMentions) options.allowedMentions = { parse: [] };

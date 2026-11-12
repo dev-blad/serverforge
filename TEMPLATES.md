@@ -221,6 +221,10 @@ messages:
         fields:
           - { name: '1. Be kind', value: 'No harassment.', inline: false }
         footer: '{{serverName}} • {{year}}'
+    links: # optional link buttons, up to 5 (https:// only)
+      - label: Add TixBot
+        emoji: '🎫'
+        url: 'https://discord.com/oauth2/authorize?client_id=…&scope=bot&guild_id={{guildId}}&disable_guild_select=true'
 ```
 
 Each message needs `content` or at least one embed. Messages are tracked: re-sync re-posts a
@@ -241,6 +245,7 @@ message only if it was deleted. Discord embed limits are enforced (title 256, de
 | `{{ownerName}}`       | Server owner's display name                                     |
 | `{{tierName}}`        | `Starter` / `Pro` / `Elite`                                     |
 | `{{year}}`            | Current year                                                    |
+| `{{guildId}}`         | Id of the server being built (e.g. to pre-select it in invites) |
 | `{{channel:key}}`     | Clickable mention of a template channel (`<#id>`)               |
 | `{{role:key}}`        | Mention of a template role (`<@&id>`)                           |
 | `{{user}}`            | Tickets `welcomeMessage` only: the member who opened the ticket |
