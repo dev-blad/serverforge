@@ -25,10 +25,10 @@ describe('assertSeller', () => {
   const config = { OWNER_USER_ID: '1', ADMIN_GUILD_ID: '2' } as BotConfig;
   it('only allows the owner inside the admin guild', () => {
     expect(() => assertSeller('2', '1', { config })).not.toThrow();
-    expect(() => assertSeller('3', '1', { config })).toThrow(
+    expect(() => assertSeller('3', '1', { config })).toThrow(/only work in your admin server/);
+    expect(() => assertSeller('2', '9', { config })).toThrow(
       /only available to the ServerForge seller/,
     );
-    expect(() => assertSeller('2', '9', { config })).toThrow();
     expect(() => assertSeller(null, '1', { config })).toThrow();
   });
 });

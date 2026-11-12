@@ -69,9 +69,15 @@ export function assertSeller(
   userId: string,
   ctx: Pick<AppContext, 'config'>,
 ): void {
-  if (userId !== ctx.config.OWNER_USER_ID || guildId !== ctx.config.ADMIN_GUILD_ID) {
+  if (userId !== ctx.config.OWNER_USER_ID) {
     throw new UserFacingError('This command is only available to the ServerForge seller.', {
       title: 'Not allowed',
     });
+  }
+  if (guildId !== ctx.config.ADMIN_GUILD_ID) {
+    throw new UserFacingError(
+      'Seller commands only work in your admin server. Run it there instead; for `/forge capture`, pass this server with the `guild-id` option.',
+      { title: 'Use your admin server' },
+    );
   }
 }
