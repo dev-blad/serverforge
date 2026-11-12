@@ -1,0 +1,240 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Shop — a Discord storefront and support server.
+# Based on a capture of the TixBot server (2026-11-12), tidied by hand:
+#   • "Upgrade" channel is now "Shop"
+#   • "Feature Requests/Bug Reports" category is now "Edit as Required"
+#   • the staff team role is named after the buyer's server
+# ─────────────────────────────────────────────────────────────────────────────
+id: shop
+name: Shop
+tier: starter
+version: 1
+description: A storefront server with an information area, community chat, a shop channel, ticket categories for sales and support, and a private staff area.
+defaults:
+  brandColor: '#D4843D'
+
+everyone:
+  permissions:
+    - CreateInstantInvite
+    - ViewChannel
+    - SendMessages
+    - EmbedLinks
+    - AttachFiles
+    - AddReactions
+    - ReadMessageHistory
+    - UseExternalEmojis
+    - UseExternalStickers
+    - UseApplicationCommands
+    - ChangeNickname
+    - Connect
+    - Speak
+    - Stream
+    - UseVAD
+    - CreatePublicThreads
+    - SendMessagesInThreads
+    - SendVoiceMessages
+    - SendPolls
+
+roles:
+  - key: team
+    name: '{{serverName}} Team'
+    color: '{{brandColor}}'
+    hoist: true
+  - key: support-agent
+    name: Support Agent
+    color: '#9E6BFF'
+    hoist: true
+  - key: enterprise
+    name: Enterprise
+    color: '#3498DB'
+    hoist: true
+  - key: business
+    name: Business
+    color: '#2ECC71'
+    hoist: true
+  - key: pro
+    name: Pro
+    color: '#9B59B6'
+    hoist: true
+  - key: beta-tester
+    name: Beta Tester
+    color: '#E67E22'
+  - key: member
+    name: Member
+    color: '#607D8B'
+  - key: bot
+    name: Bot
+    color: '#8799AE'
+    hoist: true
+    permissions:
+      - ViewChannel
+      - SendMessages
+      - EmbedLinks
+      - AttachFiles
+      - ReadMessageHistory
+      - AddReactions
+      - UseExternalEmojis
+      - ManageMessages
+      - ManageChannels
+      - ManageRoles
+      - ManageThreads
+      - ManageWebhooks
+      - ManageNicknames
+      - MentionEveryone
+      - KickMembers
+      - BanMembers
+      - ModerateMembers
+      - ViewAuditLog
+      - Connect
+      - Speak
+      - MoveMembers
+
+categories:
+  # Read-only information. Only the team and bots can post.
+  - key: information
+    name: Information
+    overwrites:
+      - role: everyone
+        allow: [ViewChannel, ReadMessageHistory]
+        deny: [SendMessages, AddReactions, CreatePublicThreads, CreatePrivateThreads, SendMessagesInThreads]
+      - role: team
+        allow: [SendMessages, AddReactions, EmbedLinks, AttachFiles, ManageMessages, MentionEveryone]
+      - role: bot
+        allow: [SendMessages, AddReactions, EmbedLinks, AttachFiles, ManageMessages, MentionEveryone]
+    channels:
+      - key: welcome
+        name: ﹒ᴡᴇʟᴄᴏᴍᴇ
+      - key: announcements
+        name: ﹒ᴀɴɴᴏᴜɴᴄᴇᴍᴇɴᴛs
+      - key: changelog
+        name: ﹒ᴄʜᴀɴɢᴇʟᴏɢ
+      - key: status
+        name: ﹒sᴛᴀᴛᴜs
+
+  # Open chat. Members can talk and react; links, files and threads are for staff.
+  - key: community
+    name: Community
+    overwrites:
+      - role: everyone
+        allow: [ViewChannel, SendMessages, AddReactions, ReadMessageHistory, UseExternalEmojis]
+        deny: [EmbedLinks, AttachFiles, CreatePublicThreads, CreatePrivateThreads, SendMessagesInThreads]
+      - role: support-agent
+        allow: [EmbedLinks, AttachFiles, ManageMessages, ManageThreads, CreatePublicThreads, SendMessagesInThreads]
+      - role: team
+        allow: [EmbedLinks, AttachFiles, ManageMessages, ManageThreads, CreatePublicThreads, SendMessagesInThreads, MentionEveryone]
+      - role: bot
+        allow: [EmbedLinks, AttachFiles, ManageMessages, ManageThreads, CreatePublicThreads, SendMessagesInThreads, MentionEveryone]
+    channels:
+      - key: general
+        name: ﹒ɢᴇɴᴇʀᴀʟ
+      - key: showcase
+        name: ﹒sʜᴏᴡᴄᴀsᴇ
+      - key: feedback
+        name: ﹒ꜰᴇᴇᴅʙᴀᴄᴋ
+      - key: shop
+        name: ﹒sʜᴏᴘ
+      - key: blog
+        name: ﹒ʙʟᴏɢ
+
+  # Read before opening a ticket. Staff can post here.
+  - key: support
+    name: Support
+    overwrites:
+      - role: everyone
+        allow: [ViewChannel, ReadMessageHistory]
+        deny: [SendMessages, AddReactions, CreatePublicThreads, CreatePrivateThreads, SendMessagesInThreads]
+      - role: support-agent
+        allow: [SendMessages, AddReactions, EmbedLinks, AttachFiles, ManageMessages]
+      - role: team
+        allow: [SendMessages, AddReactions, EmbedLinks, AttachFiles, ManageMessages, MentionEveryone]
+      - role: bot
+        allow: [SendMessages, AddReactions, EmbedLinks, AttachFiles, ManageMessages, MentionEveryone]
+    channels:
+      - key: before-you-ticket
+        name: ﹒ʙᴇꜰᴏʀᴇ-ʏᴏᴜ-ᴛɪᴄᴋᴇᴛ
+      - key: support-info
+        name: ﹒sᴜᴘᴘᴏʀᴛ-ɪɴꜰᴏ
+
+  # Ticket categories: hidden from members (ticket bots add the opener to their own channel).
+  - key: sales-enquiries
+    name: Sales Enquiries
+    overwrites: &ticket-staff-manage
+      - role: everyone
+        deny: [ViewChannel]
+      - role: support-agent
+        allow: [ViewChannel, SendMessages, ReadMessageHistory, AddReactions, EmbedLinks, AttachFiles, UseExternalEmojis, ManageMessages, PinMessages]
+      - role: team
+        allow: [ViewChannel, SendMessages, ReadMessageHistory, AddReactions, EmbedLinks, AttachFiles, UseExternalEmojis, ManageMessages, PinMessages, ManageChannels, MentionEveryone]
+      - role: bot
+        allow: [ViewChannel, SendMessages, ReadMessageHistory, AddReactions, EmbedLinks, AttachFiles, UseExternalEmojis, ManageMessages, PinMessages, ManageChannels, ManageRoles, MentionEveryone]
+    channels: []
+
+  - key: support-tickets-basic
+    name: Support Tickets (Basic)
+    overwrites:
+      - role: everyone
+        deny: [ViewChannel]
+      - role: support-agent
+        allow: [ViewChannel, SendMessages, ReadMessageHistory, AddReactions, EmbedLinks, AttachFiles, UseExternalEmojis]
+      - role: team
+        allow: [ViewChannel, SendMessages, ReadMessageHistory, AddReactions, EmbedLinks, AttachFiles, UseExternalEmojis, ManageMessages, PinMessages, ManageChannels, MentionEveryone]
+      - role: bot
+        allow: [ViewChannel, SendMessages, ReadMessageHistory, AddReactions, EmbedLinks, AttachFiles, UseExternalEmojis, ManageMessages, PinMessages, ManageChannels, ManageRoles, MentionEveryone]
+    channels: []
+
+  - key: support-tickets-escalated
+    name: Support Tickets (Escalated)
+    overwrites: *ticket-staff-manage
+    channels: []
+
+  - key: edit-as-required
+    name: Edit as Required
+    overwrites: *ticket-staff-manage
+    channels: []
+
+  - key: closed-tickets
+    name: Closed Tickets
+    overwrites: *ticket-staff-manage
+    channels: []
+
+  # Private staff area.
+  - key: staff
+    name: Staff
+    overwrites:
+      - role: everyone
+        deny: [ViewChannel]
+      - role: support-agent
+        allow: [ViewChannel, SendMessages, ReadMessageHistory, AddReactions, EmbedLinks, AttachFiles, UseExternalEmojis, Connect, Speak, Stream]
+      - role: team
+        allow: [ViewChannel, SendMessages, ReadMessageHistory, AddReactions, EmbedLinks, AttachFiles, UseExternalEmojis, Connect, Speak, Stream, ManageMessages, MentionEveryone]
+      - role: bot
+        allow: [ViewChannel, SendMessages, ReadMessageHistory, AddReactions, EmbedLinks, AttachFiles, UseExternalEmojis, Connect, Speak, ManageMessages, MentionEveryone]
+    channels:
+      - key: staff-voice
+        name: ﹒sᴛᴀꜰꜰ-ᴠᴏɪᴄᴇ 🔊
+        type: voice
+      - key: staff-chat
+        name: ﹒sᴛᴀꜰꜰ-ᴄʜᴀᴛ
+      - key: bot-logs
+        name: ﹒ʙᴏᴛ-ʟᴏɢs
+      - key: transcripts
+        name: ﹒ᴛʀᴀɴsᴄʀɪᴘᴛs
+      - key: updates
+        name: ﹒ᴜᴘᴅᴀᴛᴇs
+      - key: invite-tracker
+        name: ﹒ɪɴᴠɪᴛᴇ-ᴛʀᴀᴄᴋᴇʀ
+
+community:
+  enabled: true
+  rulesChannel: welcome
+  updatesChannel: bot-logs
+
+summaryChannel: staff-chat
+
+modules:
+  autoRole:
+    memberRole: member
+    botRole: bot
+  logging:
+    modLog: bot-logs
+    joinLeaveLog: bot-logs
