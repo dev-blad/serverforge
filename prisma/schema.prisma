@@ -1,158 +1,546 @@
-// ServerForge database schema.
-// SQLite by default. To move to Postgres: change `provider` to "postgresql", swap the
-// better-sqlite3 driver adapter for @prisma/adapter-pg in src/db/prisma.ts and set DATABASE_URL.
-// JSON payloads are stored as strings so the schema works identically on every provider.
+// Courtline Padel — data model.
+// Money is always stored as integer pence (GBP). Prices are VAT-inclusive (UK B2C).
 
 generator client {
-  provider            = "prisma-client"
-  output              = "../src/generated/prisma"
-  moduleFormat        = "esm"
-  // Generated imports end in .js so the compiled dist/ runs on plain Node.
-  importFileExtension = "js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider  = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-/// A sold license key. Only an HMAC hash of the key is stored.
-model License {
-  id          String    @id @default(cuid())
-  keyHash     String    @unique
-  /// Last 4 characters of the key, for masked display (FORGE-****-****-AB12).
-  last4       String
-  tier        String
-  /// Optional themed template; defaults to the tier's base template.
-  templateId  String?
-  /// unused | active | revoked
-  status      String    @default("unused")
-  note        String?
-  guildId     String?
-  activatedAt DateTime?
-  activatedBy String?
-  revokedAt   DateTime?
-  createdAt   DateTime  @default(now())
+// ───────────────────────────── Auth (Auth.js) ─────────────────────────────
 
-  @@index([guildId])
-  @@index([status])
+enum Role {
+  CUSTOMER
+  ADMIN
 }
 
-/// A customer guild that has been (or is being) built by ServerForge.
-model Guild {
-  id         String    @id
-  tier       String
-  templateId String
-  licenseId  String?
-  ownerId    String
-  /// JSON: { serverName, brandColor, mode }
-  options    String
-  builtAt    DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+model User {
+  id               String    @id @default(cuid())
+  name             String?
+  email            String    @unique
+  emailVerified    DateTime?
+  image            String?
+  passwordHash     String?
+  role             Role      @default(CUSTOMER)
+  stripeCustomerId String?   @unique
+  marketingOptIn   Boolean   @default(false)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  addresses     Address[]
+  orders        Order[]
+  reviews       Review[]
+  wishlistItems WishlistItem[]
+  cart          Cart?
+  gameListings  GameListing[]
 }
 
-/// Every Discord resource ServerForge created or adopted, keyed by template key.
-model GuildResource {
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Address {
   id        String   @id @default(cuid())
-  guildId   String
-  /// e.g. "role:member", "channel:general", "message:rules", "automod:spam"
-  key       String
-  /// role | category | channel | message | automod | everyone
-  kind      String
-  discordId String
-  /// For messages: the channel the message lives in.
-  channelId String?
-  /// Build run that created this resource (null when adopted).
-  runId     String?
-  /// true when ServerForge created it, false when an existing resource was adopted.
-  created   Boolean  @default(true)
-  /// JSON snapshot of the previous state for modified resources (used by rollback).
-  previous  String?
-  createdAt DateTime @default(now())
-
-  @@unique([guildId, key])
-  @@index([guildId, runId])
-}
-
-/// Per-guild feature module state + resolved config (JSON).
-model GuildModule {
-  guildId   String
-  moduleId  String
-  enabled   Boolean  @default(true)
-  config    String
-  updatedAt DateTime @updatedAt
-
-  @@id([guildId, moduleId])
-}
-
-/// One execution of the builder (setup, upgrade or resync).
-model BuildRun {
-  id         String    @id @default(cuid())
-  guildId    String
-  licenseId  String?
-  templateId String
-  tier       String
-  /// setup | upgrade | resync
-  kind       String
-  /// alongside | clean
-  mode       String
-  /// running | succeeded | failed | rolled_back | interrupted
-  status     String
-  /// JSON customer options
-  options    String
-  userId     String
-  total      Int       @default(0)
-  completed  Int       @default(0)
-  error      String?
-  startedAt  DateTime  @default(now())
-  finishedAt DateTime?
-
-  @@index([guildId, status])
-}
-
-/// A pending /setup conversation (persisted so buttons survive restarts).
-model SetupSession {
-  id        String   @id @default(cuid())
-  guildId   String
   userId    String
-  licenseId String
-  dryRun    Boolean  @default(false)
-  mode      String?
-  /// JSON customer options once the modal has been submitted
-  options   String?
+  label     String?
+  name      String
+  line1     String
+  line2     String?
+  city      String
+  county    String?
+  postcode  String
+  country   String   @default("GB")
+  phone     String?
+  isDefault Boolean  @default(false)
   createdAt DateTime @default(now())
-  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
-/// Support tickets (Elite).
-model Ticket {
-  id        String    @id @default(cuid())
-  guildId   String
-  channelId String    @unique
-  openerId  String
-  number    Int
-  /// open | closed
-  status    String    @default("open")
-  createdAt DateTime  @default(now())
-  closedAt  DateTime?
-  closedBy  String?
+// ───────────────────────────── Catalogue ─────────────────────────────
 
-  @@index([guildId])
+model Category {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  name          String
+  description   String   @default("")
+  image         String?
+  sortOrder     Int      @default(0)
+  /// Placeholder categories show the store's future range; flagged in admin only.
+  isPlaceholder Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  products Product[]
 }
 
-/// Feature data for shop modules (vouches, orders, products, giveaways, applications,
-/// backups…), one row per item. `kind` says what it is; `data` holds the JSON payload.
-model Record {
+model Brand {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  name        String
+  description String    @default("")
+  products    Product[]
+}
+
+enum ProductStatus {
+  ACTIVE
+  DRAFT
+  ARCHIVED
+}
+
+model Product {
+  id               String        @id @default(cuid())
+  slug             String        @unique
+  name             String
+  shortDescription String        @default("")
+  description      String        @default("")
+  categoryId       String
+  brandId          String?
+  /// Base price in pence (VAT inclusive). Variants may override.
+  price            Int
+  /// "Was" price in pence for sale display.
+  compareAtPrice   Int?
+  images           String[]
+  /// Ordered list of { label, value } rows for the specs table.
+  specs            Json          @default("[]")
+  // Filterable attributes (mainly rackets)
+  weightGrams      Int?
+  shape            String?
+  skillLevel       String?
+  balance          String?
+  /// Shipping weight in grams (packaged)
+  shippingWeight   Int           @default(500)
+  isFeatured       Boolean       @default(false)
+  isBestSeller     Boolean       @default(false)
+  isNew            Boolean       @default(false)
+  /// Placeholder products are demo stock to be swapped out. Visible in admin only.
+  isPlaceholder    Boolean       @default(false)
+  status           ProductStatus @default(ACTIVE)
+  ratingAvg        Float         @default(0)
+  ratingCount      Int           @default(0)
+  salesCount       Int           @default(0)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  category      Category       @relation(fields: [categoryId], references: [id])
+  brand         Brand?         @relation(fields: [brandId], references: [id])
+  variants      ProductVariant[]
+  reviews       Review[]
+  wishlistItems WishlistItem[]
+  orderItems    OrderItem[]
+
+  @@index([categoryId, status])
+  @@index([brandId])
+}
+
+model ProductVariant {
+  id                String  @id @default(cuid())
+  productId         String
+  sku               String  @unique
+  name              String  @default("Default")
+  /// Price override in pence; null = product price
+  price             Int?
+  stock             Int     @default(0)
+  lowStockThreshold Int     @default(5)
+  sortOrder         Int     @default(0)
+
+  product           Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems         CartItem[]
+  orderItems        OrderItem[]
+  backInStockAlerts BackInStockAlert[]
+
+  @@index([productId])
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Review {
+  id         String       @id @default(cuid())
+  productId  String
+  userId     String?
+  authorName String
+  rating     Int
+  title      String
+  body       String
+  verified   Boolean      @default(false)
+  status     ReviewStatus @default(PENDING)
+  createdAt  DateTime     @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([productId, status])
+}
+
+model WishlistItem {
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([userId, productId])
+}
+
+model BackInStockAlert {
+  id         String    @id @default(cuid())
+  variantId  String
+  email      String
+  notifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([variantId, email])
+}
+
+// ───────────────────────────── Cart ─────────────────────────────
+
+model Cart {
+  id                    String    @id @default(cuid())
+  /// Opaque token stored in an httpOnly cookie for guests
+  token                 String    @unique
+  userId                String?   @unique
+  /// Captured at checkout — used for abandoned cart reminders
+  email                 String?
+  discountCode          String?
+  giftCardCode          String?
+  abandonedEmailSentAt  DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+}
+
+model CartItem {
   id        String   @id @default(cuid())
-  guildId   String
-  kind      String
-  number    Int      @default(0)
-  userId    String?
-  status    String?
-  data      String
+  cartId    String
+  variantId String
+  quantity  Int
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
-  @@index([guildId, kind])
-  @@index([kind, status])
+  cart    Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, variantId])
+}
+
+// ───────────────────────────── Promotions ─────────────────────────────
+
+enum DiscountType {
+  PERCENT
+  FIXED
+  FREE_SHIPPING
+}
+
+model Discount {
+  id          String       @id @default(cuid())
+  code        String       @unique
+  description String       @default("")
+  type        DiscountType
+  /// Percent (1-100) for PERCENT, pence for FIXED, ignored for FREE_SHIPPING
+  value       Int          @default(0)
+  minSubtotal Int          @default(0)
+  startsAt    DateTime?
+  endsAt      DateTime?
+  usageLimit  Int?
+  usageCount  Int          @default(0)
+  active      Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+}
+
+model GiftCard {
+  id             String    @id @default(cuid())
+  code           String    @unique
+  initialBalance Int
+  balance        Int
+  active         Boolean   @default(true)
+  expiresAt      DateTime?
+  note           String?
+  createdAt      DateTime  @default(now())
+}
+
+// ───────────────────────────── Orders ─────────────────────────────
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID
+  PACKED
+  SHIPPED
+  DELIVERED
+  REFUNDED
+  CANCELLED
+}
+
+model Order {
+  id                    String      @id @default(cuid())
+  /// Human friendly sequential number (display as CL-<number>)
+  number                Int         @unique @default(autoincrement())
+  userId                String?
+  email                 String
+  status                OrderStatus @default(PENDING_PAYMENT)
+  currency              String      @default("GBP")
+  subtotal              Int
+  discountTotal         Int         @default(0)
+  shippingTotal         Int         @default(0)
+  giftCardTotal         Int         @default(0)
+  /// VAT contained in total (prices are VAT inclusive)
+  taxTotal              Int         @default(0)
+  total                 Int
+  shippingMethod        String
+  shippingAddress       Json
+  discountCode          String?
+  giftCardCode          String?
+  savePaymentMethod     Boolean     @default(false)
+  /// Cart this order was created from (cleared once paid)
+  cartId                String?
+  /// stripe | simulated | giftcard
+  paymentProvider       String      @default("stripe")
+  stripePaymentIntentId String?     @unique
+  stripeCustomerId      String?
+  paymentMethodSummary  String?
+  /// "web" for real checkouts, "seed" for generated demo history
+  source                String      @default("web")
+  customerNote          String?
+  trackingNumber        String?
+  trackingUrl           String?
+  carrier               String?
+  paidAt                DateTime?
+  packedAt              DateTime?
+  shippedAt             DateTime?
+  deliveredAt           DateTime?
+  refundedAt            DateTime?
+  cancelledAt           DateTime?
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  user     User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items    OrderItem[]
+  events   OrderEvent[]
+  shipment Shipment?
+
+  @@index([status, createdAt])
+  @@index([userId])
+  @@index([email])
+  @@index([cartId])
+}
+
+model OrderItem {
+  id          String  @id @default(cuid())
+  orderId     String
+  productId   String?
+  variantId   String?
+  name        String
+  variantName String
+  sku         String
+  image       String?
+  unitPrice   Int
+  quantity    Int
+
+  order   Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model OrderEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  type      String
+  message   String
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+model Shipment {
+  id             String    @id @default(cuid())
+  orderId        String    @unique
+  provider       String
+  service        String
+  status         String    @default("PENDING")
+  trackingNumber String?
+  trackingUrl    String?
+  labelPdf       Bytes?
+  printJobId     String?
+  printedAt      DateTime?
+  error          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+// ───────────────────────────── Comms & support ─────────────────────────────
+
+model EmailLog {
+  id         String   @id @default(cuid())
+  to         String
+  subject    String
+  template   String
+  html       String   @db.Text
+  status     String
+  providerId String?
+  error      String?
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String   @default("footer")
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id          String   @id @default(cuid())
+  name        String
+  email       String
+  subject     String
+  orderNumber String?
+  message     String   @db.Text
+  handled     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model ReturnRequest {
+  id          String   @id @default(cuid())
+  orderNumber String
+  email       String
+  items       String   @db.Text
+  reason      String
+  resolution  String
+  comments    String?  @db.Text
+  status      String   @default("REQUESTED")
+  createdAt   DateTime @default(now())
+}
+
+model ChatConversation {
+  id              String        @id @default(cuid())
+  /// Short code used to route WhatsApp replies, e.g. "C7F2"
+  code            String        @unique
+  visitorToken    String        @unique
+  name            String?
+  email           String?
+  pageUrl         String?
+  status          String        @default("OPEN")
+  lastMessageAt   DateTime      @default(now())
+  createdAt       DateTime      @default(now())
+  messages        ChatMessage[]
+}
+
+model ChatMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  /// VISITOR | AGENT | SYSTEM
+  author         String
+  body           String   @db.Text
+  /// Provider id of the outbound WhatsApp message (for reply threading)
+  externalId     String?
+  createdAt      DateTime @default(now())
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([externalId])
+}
+
+// ───────────────────────────── Community ─────────────────────────────
+
+model Venue {
+  id           String  @id @default(cuid())
+  name         String
+  city         String
+  region       String
+  postcode     String?
+  lat          Float
+  lng          Float
+  courts       Int     @default(2)
+  indoor       Boolean @default(false)
+  website      String?
+  playtomicUrl String?
+  /// Demo venues are illustrative — verify before relying on them.
+  isDemo       Boolean @default(true)
+}
+
+model GameListing {
+  id            String   @id @default(cuid())
+  userId        String
+  title         String
+  city          String
+  venueName     String?
+  level         String
+  playDate      DateTime
+  playersNeeded Int
+  description   String   @db.Text
+  contact       String
+  status        String   @default("OPEN")
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, playDate])
+}
+
+// ───────────────────────────── Analytics ─────────────────────────────
+
+/// First-party, cookieless event log (daily-rotating salted hash, no PII).
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  type        String
+  path        String?
+  visitorHash String
+  productId   String?
+  createdAt   DateTime @default(now())
+
+  @@index([type, createdAt])
 }

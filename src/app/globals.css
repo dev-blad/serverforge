@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #f1f7f3;
+  --color-brand-100: #dcebe2;
+  --color-brand-200: #b9d7c6;
+  --color-brand-500: #1f7a55;
+  --color-brand-600: #176345;
+  --color-brand-700: #124f38;
+  --color-brand-800: #0f4130;
+  --color-brand-900: #0d3b2e;
+  --color-brand-950: #072219;
+  --color-lime-accent: #d9f99d;
+  --color-lime-strong: #a3e635;
+  --color-ink: #14211b;
+  --color-muted: #55645c;
+  --color-line: #e3e8e4;
+  --color-canvas: #f7f8f5;
+  --color-sale: #b42318;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --shadow-card: 0 1px 2px rgb(16 24 20 / 0.04), 0 4px 16px rgb(16 24 20 / 0.06);
+}
+
+html[data-consent] #cookie-banner[data-initial] {
+  display: none;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-white text-ink antialiased;
+  }
+  h1, h2, h3 {
+    letter-spacing: -0.02em;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@utility container-page {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60;
+}
+@utility btn-primary {
+  @apply btn bg-brand-900 text-white hover:bg-brand-700;
+}
+@utility btn-accent {
+  @apply btn bg-lime-strong text-brand-950 hover:bg-lime-accent;
+}
+@utility btn-outline {
+  @apply btn border border-line bg-white text-ink hover:border-brand-900;
+}
+@utility btn-sm {
+  @apply px-3 py-2 text-xs;
+}
+@utility input {
+  @apply block w-full rounded-lg border border-line bg-white px-3 py-2.5 text-sm text-ink placeholder:text-muted/70 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 focus:outline-none;
+}
+@utility label {
+  @apply mb-1 block text-sm font-medium text-ink;
+}
+@utility card {
+  @apply rounded-xl border border-line bg-white;
+}
+@utility badge {
+  @apply inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase;
+}
+@utility prose-legal {
+  & h2 { @apply mt-8 mb-3 text-xl font-bold; }
+  & h3 { @apply mt-5 mb-2 text-base font-semibold; }
+  & p, & li { @apply mb-3 leading-relaxed text-ink/90; }
+  & ul { @apply mb-4 list-disc pl-6; }
+  & ol { @apply mb-4 list-decimal pl-6; }
+  & a { @apply text-brand-700 underline; }
+  & table { @apply mb-4 w-full text-sm; }
+  & th, & td { @apply border border-line p-2 text-left align-top; }
+}

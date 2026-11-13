@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800" role="img">
+<defs>
+<radialGradient id="bg" cx="50%" cy="40%" r="75%"><stop offset="0" stop-color="#f4f1ea"/><stop offset="1" stop-color="#e8e2d5"/></radialGradient>
+<linearGradient id="pri" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0369a1"/><stop offset="1" stop-color="#024c74"/></linearGradient>
+<linearGradient id="sec" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0c4a6e"/><stop offset="1" stop-color="#093853"/></linearGradient>
+<linearGradient id="acc" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#bae6fd"/><stop offset="1" stop-color="#95b8ca"/></linearGradient>
+<linearGradient id="gloss" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".45" stop-color="#fff" stop-opacity=".28"/><stop offset=".6" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<radialGradient id="ball" cx="38%" cy="32%" r="70%"><stop offset="0" stop-color="#f4ff9a"/><stop offset=".55" stop-color="#d4ec2a"/><stop offset="1" stop-color="#9fb815"/></radialGradient>
+<radialGradient id="shadow"><stop offset="0" stop-color="#000" stop-opacity=".22"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<filter id="soft" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="10" stdDeviation="14" flood-opacity=".18"/></filter>
+</defs>
+<rect width="800" height="800" fill="url(#bg)"/>
+<ellipse cx="400" cy="720" rx="230" ry="20" fill="url(#shadow)"/><g transform="translate(400 400) scale(1.15) translate(-400 -400)"><g filter="url(#soft)"><rect x="330" y="120" width="140" height="60" rx="14" fill="#1c1f1d"/><path d="M300 200 C 300 170 500 170 500 200 L 520 680 C 520 710 280 710 280 680 Z" fill="url(#pri)"/><path d="M300 200 C 300 170 500 170 500 200 L 520 680 C 520 710 280 710 280 680 Z" fill="url(#gloss)"/><rect x="292" y="380" width="216" height="140" fill="url(#acc)"/><text x="400" y="462" font-family="Helvetica, Arial, sans-serif" font-weight="800" font-size="26" letter-spacing="3.12" fill="#fff" text-anchor="middle" transform="rotate(0 400 462)">SOLARA</text></g></g>
+</svg>
