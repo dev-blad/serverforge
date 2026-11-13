@@ -95,26 +95,44 @@ export interface SetupResult {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const isUnset = (value: unknown) => value === null || value === undefined || value === '';
+
 /**
- * Configure TixBot for a guild and post the dropdown panel. Safe to re-run: ticket types are
- * matched by name and the panel by {@link PANEL_NAME}, so nothing is duplicated except the
- * posted panel message.
+ * How a setup run treats what's already in TixBot:
+ *  - `full`  (first setup): apply every setting, ticket message and the panel, then post the menu.
+ *  - `fill`  (re-run after a successful setup): only add what's missing — empty settings and
+ *    ticket types that don't exist yet. Anything the buyer changed in the TixBot dashboard is
+ *    left alone and no second menu is posted.
+ */
+export type SetupMode = 'full' | 'fill';
+
+/**
+ * Configure TixBot for a guild. Ticket types are matched by name and the panel by
+ * {@link PANEL_NAME}, so re-running never duplicates them.
  */
 export async function runTixbotSetup(
   api: TixbotApi,
   guildId: string,
   config: TixbotRuntimeConfig,
-  options: { deployRetries?: number; retryDelayMs?: number; deployPanel?: boolean } = {},
+  options: { deployRetries?: number; retryDelayMs?: number; mode?: SetupMode } = {},
 ): Promise<SetupResult> {
-  await api.saveConfig(guildId, tixbotGuildSettings(config));
+  const fill = options.mode === 'fill';
+  const current = await api.getConfig(guildId);
+
+  // Guild settings: everything on first setup, only empty ones on a re-run.
+  const wanted = tixbotGuildSettings(config);
+  const settings = fill
+    ? Object.fromEntries(Object.entries(wanted).filter(([k]) => isUnset(current.config[k])))
+    : wanted;
+  if (Object.keys(settings).length) await api.saveConfig(guildId, settings);
 
   // Ticket types (reuse any with the same name)
-  const existing = await api.getTicketTypes(guildId);
-  const byName = new Map(existing.map((t) => [t.name.trim().toLowerCase(), t.id]));
+  const byName = new Map(current.ticketTypes.map((t) => [t.name.trim().toLowerCase(), t.id]));
   const ticketTypeIds: number[] = [];
-  let createdTypes = 0;
+  const newTypeIds = new Set<number>();
   for (const [index, type] of config.ticketTypes.entries()) {
     let id = byName.get(type.name.trim().toLowerCase());
+    const isNew = id === undefined;
     if (id === undefined) {
       id = await api.createTicketType(guildId, {
         name: type.name,
@@ -122,43 +140,51 @@ export async function runTixbotSetup(
         ...(type.description ? { description: type.description } : {}),
         display_order: index,
       });
-      createdTypes += 1;
+      newTypeIds.add(id);
     }
-    await api.updateTicketType(guildId, id, {
-      emoji: type.emoji,
-      description: type.description,
-      display_order: index,
-      enabled: true,
-      // Per-type categories are a TixBot Pro feature; free servers use l1_category_id.
-      target_category_id: type.categoryId ?? config.ticketCategoryId,
-      ...(type.welcome ? { ticket_message: { embeds: [toTixbotEmbed(type.welcome)] } } : {}),
-      ...(type.notification ? { notification_message: type.notification } : {}),
-    });
+    if (isNew || !fill) {
+      await api.updateTicketType(guildId, id, {
+        emoji: type.emoji,
+        description: type.description,
+        display_order: index,
+        enabled: true,
+        // Per-type categories are a TixBot Pro feature; free servers use l1_category_id.
+        target_category_id: type.categoryId ?? config.ticketCategoryId,
+        ...(type.welcome ? { ticket_message: { embeds: [toTixbotEmbed(type.welcome)] } } : {}),
+        ...(type.notification ? { notification_message: type.notification } : {}),
+      });
+    }
     ticketTypeIds.push(id);
   }
 
   // Dropdown panel (reuse ours if it exists)
   const panels = await api.listDropdownPanels(guildId);
   let panelId = panels.find((p) => p.name === PANEL_NAME)?.id;
+  const panelIsNew = panelId === undefined;
   if (panelId === undefined) {
     panelId = await api.createDropdownPanel(guildId, {
       name: PANEL_NAME,
       placeholder_text: config.placeholder,
     });
   }
-  await api.updateDropdownPanel(guildId, panelId, {
-    placeholder_text: config.placeholder,
-    panel_message: { embeds: [toTixbotEmbed(config.panelEmbed)] },
-  });
-  const options_ = await api.getPanelOptions(guildId, panelId);
-  const onPanel = new Set(options_.map((o) => Number(o.ticket_selection_id)));
+  if (panelIsNew || !fill) {
+    await api.updateDropdownPanel(guildId, panelId, {
+      placeholder_text: config.placeholder,
+      panel_message: { embeds: [toTixbotEmbed(config.panelEmbed)] },
+    });
+  }
+  const panelOptions = await api.getPanelOptions(guildId, panelId);
+  const onPanel = new Set(panelOptions.map((o) => Number(o.ticket_selection_id)));
   for (const [index, typeId] of ticketTypeIds.entries()) {
-    if (!onPanel.has(typeId)) await api.addPanelOption(guildId, panelId, typeId, index);
+    // On a re-run only brand-new types are added (a buyer may have removed an option on purpose).
+    if (onPanel.has(typeId)) continue;
+    if (fill && !panelIsNew && !newTypeIds.has(typeId)) continue;
+    await api.addPanelOption(guildId, panelId, typeId, index);
   }
 
-  // A re-run only refreshes settings and messages; the panel is already posted.
-  if (options.deployPanel === false)
-    return { panelId, ticketTypeIds, createdTypes, deployed: false };
+  const result = { panelId, ticketTypeIds, createdTypes: newTypeIds.size };
+  // A re-run keeps the menu that's already posted.
+  if (fill) return { ...result, deployed: false };
 
   // TixBot may not have this guild/channel cached for a few seconds after joining.
   const retries = options.deployRetries ?? 5;
@@ -173,7 +199,7 @@ export async function runTixbotSetup(
     }
   }
 
-  return { panelId, ticketTypeIds, createdTypes, deployed: true };
+  return { ...result, deployed: true };
 }
 
 /** TixBot invite that opens with the customer's server pre-selected. */

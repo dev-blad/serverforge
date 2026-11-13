@@ -81,9 +81,9 @@ export async function setUpTixbot(
   try {
     await grantTixbotAccess(guild, config);
     const api = new TixbotApi(TIXBOT_API_URL, TIXBOT_API_KEY);
-    // Once the panel is up, re-runs only refresh TixBot's settings and ticket messages.
+    // After a successful setup, re-runs only fill in what's missing (dashboard edits are kept).
     const result = await runTixbotSetup(api, guild.id, config, {
-      deployPanel: !config.completedAt,
+      mode: config.completedAt ? 'fill' : 'full',
     });
 
     const record = await ctx.db.modules.get(guild.id, 'tixbot');
@@ -102,11 +102,11 @@ export async function setUpTixbot(
 
     if (!result.deployed) {
       await postToSetupChannel(guild, config, {
-        title: '🔄 TixBot settings refreshed',
+        title: '🔄 TixBot checked',
         color: 0x2ecc71,
-        description: `Ticket types, roles, categories and ticket messages were updated. The existing menu in <#${config.panelChannelId}> was kept.`,
+        description: `Anything missing was added back${result.createdTypes ? ` (${result.createdTypes} ticket type(s))` : ''}. Changes made in the TixBot dashboard were kept, and the menu in <#${config.panelChannelId}> was left as it is.`,
       });
-      return '✅ TixBot settings and ticket messages refreshed.';
+      return '✅ TixBot checked — anything missing was added back; your dashboard changes were kept.';
     }
 
     await postToSetupChannel(guild, config, {

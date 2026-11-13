@@ -392,8 +392,8 @@ placeholders (`{{serverName}}`, `{{brandColor}}`…) still work alongside them.
 ServerForge posts the staff embed during the build. When TixBot joins (or an admin clicks **Set up
 tickets now**), ServerForge configures TixBot through its API — roles, categories, transcripts,
 ticket types — and posts the dropdown panel, then reports back in `setupChannel`. Re-running is
-safe (types are matched by name); once the menu is posted, re-runs only refresh TixBot's
-settings and ticket messages instead of posting a second menu. Per-type `category` needs TixBot Pro; on the free plan every
+safe: once setup has succeeded, a re-run only fills in what's missing (empty settings, new
+ticket types) and never overwrites changes made in the TixBot dashboard or posts a second menu. Per-type `category` needs TixBot Pro; on the free plan every
 ticket opens in `ticketCategory`. Requires `TIXBOT_API_URL` and `TIXBOT_API_KEY` on the bot.
 
 ---

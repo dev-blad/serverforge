@@ -88,13 +88,19 @@ export class TixbotApi {
     return data as T;
   }
 
+  /** TixBot's current settings for the guild and its ticket types. */
+  async getConfig(
+    guildId: string,
+  ): Promise<{ config: Record<string, unknown>; ticketTypes: TixbotTicketType[] }> {
+    const data = await this.request<{
+      config?: Record<string, unknown> | null;
+      ticketTypes?: TixbotTicketType[];
+    }>(guildId, 'GET', `/api/config/${guildId}`);
+    return { config: data.config ?? {}, ticketTypes: data.ticketTypes ?? [] };
+  }
+
   async getTicketTypes(guildId: string): Promise<TixbotTicketType[]> {
-    const data = await this.request<{ ticketTypes?: TixbotTicketType[] }>(
-      guildId,
-      'GET',
-      `/api/config/${guildId}`,
-    );
-    return data.ticketTypes ?? [];
+    return (await this.getConfig(guildId)).ticketTypes;
   }
 
   async saveConfig(guildId: string, config: Record<string, unknown>): Promise<void> {

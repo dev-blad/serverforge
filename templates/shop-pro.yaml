@@ -1,0 +1,129 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Shop Pro — everything in Shop (Starter), plus:
+#   • TixBot set up automatically: add TixBot and ServerForge configures roles,
+#     categories, transcripts, ticket types, branded ticket messages and the menu
+# Only the differences from Shop are listed here (see TEMPLATES.md → Inheritance).
+# ─────────────────────────────────────────────────────────────────────────────
+id: shop-pro
+extends: shop
+name: Shop Pro
+tier: pro
+version: 1
+description: Everything in Shop, plus a ticket system that sets itself up — add TixBot and the ticket types, branded ticket messages, staff roles, categories, transcripts and ticket menu are configured automatically.
+
+messages:
+  # The tixbot module posts its own "Add TixBot / Set up tickets now" embed and the ticket menu.
+  - key: install-tixbot
+    remove: true
+  - key: tip-support-info
+    remove: true
+
+modules:
+  tixbot:
+    setupChannel: staff-chat
+    panelChannel: support-info
+    staffRole: support-agent
+    escalationRole: team
+    ticketCategory: support-tickets-basic
+    escalationCategory: support-tickets-escalated
+    closedCategory: closed-tickets
+    transcriptChannel: transcripts
+    notificationsChannel: bot-logs
+    placeholder: Choose Ticket
+    panelEmbed:
+      author: '{{serverName}}'
+      title: '{{serverName}} Support'
+      color: '{{brandColor}}'
+      description: |-
+        Need help? Select a category below and a ticket will be opened for you.
+
+        🛒 **Sales Enquiries**
+        Product questions, pricing, availability and placing an order.
+
+        🛠️ **Support Tickets**
+        Help with an existing order, delivery, payment or your account.
+
+        ✏️ **Edit as Required**
+        Anything else — rename this option in the TixBot dashboard to suit your shop.
+
+        > 💬 Please be as descriptive as possible — it helps us resolve your enquiry faster.
+        > ⏱️ Average response time: **under 24 hours**
+      footer: '{{serverName}}'
+    ticketTypes:
+      - key: sales
+        name: Sales Enquiries
+        emoji: '🛒'
+        description: Pricing, products and placing an order
+        category: sales-enquiries
+        notification: '{support} — new **Sales enquiry** from {user}'
+        welcome:
+          author: '{{serverName}}'
+          title: '🛒 Sales Enquiry'
+          color: '{{brandColor}}'
+          description: |-
+            Hi {user}, thanks for getting in touch with **{server}**!
+
+            `Ticket      :` **#{ticket_number}**
+            `Customer    :` {user}
+            `Department  :` Sales
+            `Status      :` 🟢 Open
+            `Response    :` Usually within 24 hours
+
+            **To help us quote you quickly, please include:**
+            › What you'd like to buy
+            › Quantity, package or options
+            › Any deadline or delivery details
+
+            A member of {support} will be with you shortly.
+          footer: '{{serverName}} • Ticket #{ticket_number}'
+      - key: support
+        name: Support Tickets
+        emoji: '🛠️'
+        description: Help with an order, delivery or payment
+        category: support-tickets-basic
+        notification: '{support} — new **support ticket** from {user}'
+        welcome:
+          author: '{{serverName}}'
+          title: '🛠️ Support Ticket'
+          color: '{{brandColor}}'
+          description: |-
+            Hi {user}, sorry you're having trouble — we're here to help.
+
+            `Ticket      :` **#{ticket_number}**
+            `Customer    :` {user}
+            `Department  :` Support
+            `Status      :` 🟢 Open
+            `Response    :` Usually within 24 hours
+
+            **So we can sort this quickly, please include:**
+            › Your order number or payment reference
+            › What went wrong, and when
+            › Screenshots, if you have them
+
+            A member of {support} will be with you shortly.
+          footer: '{{serverName}} • Ticket #{ticket_number}'
+      - key: other
+        name: Edit as Required
+        emoji: '✏️'
+        description: Anything else
+        category: edit-as-required
+        notification: '{support} — new **ticket** from {user}'
+        welcome:
+          author: '{{serverName}}'
+          title: '✏️ New Ticket'
+          color: '{{brandColor}}'
+          description: |-
+            Hi {user}, thanks for reaching out to **{server}**.
+
+            `Ticket      :` **#{ticket_number}**
+            `Customer    :` {user}
+            `Department  :` General
+            `Status      :` 🟢 Open
+            `Response    :` Usually within 24 hours
+
+            **Please tell us:**
+            › What you need help with
+            › Any details, links or screenshots that help
+
+            A member of {support} will be with you shortly.
+          footer: '{{serverName}} • Ticket #{ticket_number}'

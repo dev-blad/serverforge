@@ -42,7 +42,11 @@ function config(overrides: Partial<TixbotRuntimeConfig> = {}): TixbotRuntimeConf
 
 /** In-memory stand-in for the TixBot API that records every call. */
 function fakeTixbot(
-  seed: { types?: { id: number; name: string }[]; panels?: { id: number; name: string }[] } = {},
+  seed: {
+    config?: Record<string, unknown>;
+    types?: { id: number; name: string }[];
+    panels?: { id: number; name: string }[];
+  } = {},
 ) {
   const calls: { method: string; path: string; body?: unknown; guild: string | null }[] = [];
   const types = [...(seed.types ?? [])];
@@ -50,6 +54,7 @@ function fakeTixbot(
   const options: Record<number, number[]> = {};
   let nextId = 100;
   let deployFailures = 0;
+  const savedConfig: Record<string, unknown> = { ...(seed.config ?? {}) };
 
   const fetchImpl = (url: string, init: RequestInit) => {
     const path = url.replace('https://tixbot.test', '');
@@ -64,8 +69,11 @@ function fakeTixbot(
 
     if (headers['x-tixbot-api-key'] !== 'secret') return json({ error: 'Unauthorized' }, 401);
     if (method === 'GET' && path === `/api/config/${GUILD}`)
-      return json({ config: {}, ticketTypes: types });
-    if (method === 'POST' && path === `/api/config/${GUILD}`) return json({ success: true });
+      return json({ config: savedConfig, ticketTypes: types });
+    if (method === 'POST' && path === `/api/config/${GUILD}`) {
+      Object.assign(savedConfig, body);
+      return json({ success: true });
+    }
     if (method === 'POST' && path === `/api/ticket-types/${GUILD}`) {
       const id = nextId++;
       types.push({ id, name: String(body?.['name']) });
@@ -191,7 +199,7 @@ describe('TixBot setup', () => {
     expect(tb.options[9]).toEqual([7, result.ticketTypeIds[1]]);
   });
 
-  it('sends each ticket type its welcome embed and ping, and can skip re-posting the panel', async () => {
+  it('sends each ticket type its welcome embed and ping', async () => {
     const tb = fakeTixbot();
     const cfg = config();
     cfg.ticketTypes[0]!.welcome = {
@@ -200,9 +208,8 @@ describe('TixBot setup', () => {
       color: 1,
     };
     cfg.ticketTypes[0]!.notification = '{support} — new sale from {user}';
-    const result = await runTixbotSetup(tb.api, GUILD, cfg, { deployPanel: false });
-    expect(result.deployed).toBe(false);
-    expect(tb.calls.some((c) => c.path.startsWith('/api/deploy-dropdown-panel'))).toBe(false);
+    const result = await runTixbotSetup(tb.api, GUILD, cfg);
+    expect(result.deployed).toBe(true);
     const update = tb.calls.find(
       (c) => c.method === 'PATCH' && c.path === `/api/ticket-types/${result.ticketTypeIds[0]}`,
     );
@@ -216,6 +223,37 @@ describe('TixBot setup', () => {
       (c) => c.method === 'PATCH' && c.path === `/api/ticket-types/${result.ticketTypeIds[1]}`,
     );
     expect(plain?.body).not.toHaveProperty('ticket_message');
+  });
+
+  it('re-runs only fill in what is missing and keep dashboard edits', async () => {
+    // The buyer changed the support role and removed "Support Tickets" from the menu; the
+    // closed-tickets setting is empty and a "Sales Enquiries" type already exists.
+    const tb = fakeTixbot({
+      config: { l1_role_id: 'buyer-role', closed_category_id: null },
+      types: [
+        { id: 7, name: 'Sales Enquiries' },
+        { id: 8, name: 'Support Tickets' },
+      ],
+      panels: [{ id: 9, name: PANEL_NAME }],
+    });
+    tb.options[9] = [7];
+    const cfg = config({ completedAt: '2026-11-12T00:00:00Z', panelId: 9 });
+    cfg.ticketTypes.push({ name: 'Refunds', emoji: '💸', description: null, categoryId: null });
+
+    const result = await runTixbotSetup(tb.api, GUILD, cfg, { mode: 'fill' });
+
+    const saved = tb.calls.find((c) => c.method === 'POST' && c.path === `/api/config/${GUILD}`);
+    expect(saved?.body).toMatchObject({ closed_category_id: 'cat-closed' });
+    expect(saved?.body).not.toHaveProperty('l1_role_id');
+    // Existing types and the panel message are untouched; only the new type is configured.
+    const patched = tb.calls.filter((c) => c.method === 'PATCH').map((c) => c.path);
+    expect(patched).toEqual([`/api/ticket-types/${result.ticketTypeIds[2]}`]);
+    expect(result.createdTypes).toBe(1);
+    // Only the brand-new type is added to the menu (the removed one stays removed) and
+    // no second menu is posted.
+    expect(tb.options[9]).toEqual([7, result.ticketTypeIds[2]]);
+    expect(result.deployed).toBe(false);
+    expect(tb.calls.some((c) => c.path.startsWith('/api/deploy-dropdown-panel'))).toBe(false);
   });
 
   it('retries the panel post while TixBot is still loading the server', async () => {
@@ -254,7 +292,7 @@ describe('tixbot module install', () => {
   it('posts the staff setup embed and stores resolved ids', async () => {
     const guild = new FakeGuild();
     const h = harness(guild);
-    const { result } = await h.build('shop', { installers: moduleInstallers });
+    const { result } = await h.build('shop-pro', { installers: moduleInstallers });
     expect(result.status).toBe('succeeded');
 
     const record = await h.db.modules.get(guild.guildId, 'tixbot');
@@ -282,6 +320,25 @@ describe('tixbot module install', () => {
     );
     expect(setup?.channelId).toBe(guild.channelByName('﹒sᴛᴀꜰꜰ-ᴄʜᴀᴛ')!.id);
     expect(setup?.payload.links?.[0]?.url).toContain(`guild_id=${guild.guildId}`);
+  });
+
+  it('Starter Shop gets the manual TixBot steps and channel tips instead of auto setup', async () => {
+    const guild = new FakeGuild();
+    const h = harness(guild);
+    const { result } = await h.build('shop', { installers: moduleInstallers });
+    expect(result.status).toBe('succeeded');
+    expect(await h.db.modules.get(guild.guildId, 'tixbot')).toBeNull();
+
+    const messages = [...guild.messages.values()];
+    const install = messages.find((m) => m.payload.links?.[0]?.label === 'Add TixBot');
+    expect(install?.channelId).toBe(guild.channelByName('﹒sᴛᴀꜰꜰ-ᴄʜᴀᴛ')!.id);
+    expect(install?.payload.links?.[0]?.url).toContain(`guild_id=${guild.guildId}`);
+    expect(install?.payload.buttons ?? []).toHaveLength(0);
+
+    const shopTip = messages.find((m) => m.channelId === guild.channelByName('﹒sʜᴏᴘ')!.id);
+    expect(shopTip?.payload.embeds?.[0]?.title).toBe('🛒 Shop — what goes here');
+    const tips = messages.filter((m) => m.payload.embeds?.[0]?.footer?.startsWith('📌 Setup tip'));
+    expect(tips.length).toBe(10);
   });
 
   it('rejects ticket types pointing at a channel that is not a category', () => {

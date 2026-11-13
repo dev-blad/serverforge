@@ -14,12 +14,13 @@ import { FakeGuild } from '../fakes/fakeGuild.js';
 
 export const templates = await loadTemplates(path.resolve('templates'));
 
-export function rendered(id: string, brandColor = '#FF8800'): Template {
+export function rendered(id: string, brandColor = '#FF8800', guildId = 'g1'): Template {
   return renderTemplate(templates.get(id)!, {
     serverName: 'Test Server',
     brandColor,
     ownerId: 'owner',
     ownerName: 'Owner',
+    guildId,
   });
 }
 
@@ -52,7 +53,7 @@ export function harness(guild = new FakeGuild(), db: Database = createMemoryData
   const planFor: Harness['planFor'] = async (templateId, opts = {}) => {
     const tracked = await db.resources.list(guild.guildId);
     return plan({
-      template: rendered(templateId),
+      template: rendered(templateId, undefined, guild.guildId),
       snapshot: guild.snapshot(tracked),
       tracked,
       mode: opts.mode ?? 'alongside',
@@ -66,7 +67,7 @@ export function harness(guild = new FakeGuild(), db: Database = createMemoryData
     planFor,
     async build(templateId, opts = {}) {
       const p = await planFor(templateId, opts);
-      const template = rendered(templateId);
+      const template = rendered(templateId, undefined, guild.guildId);
       const run = await db.runs.create({
         guildId: guild.guildId,
         licenseId: null,
