@@ -139,3 +139,20 @@ model Ticket {
 
   @@index([guildId])
 }
+
+/// Feature data for shop modules (vouches, orders, products, giveaways, applications,
+/// backups…), one row per item. `kind` says what it is; `data` holds the JSON payload.
+model Record {
+  id        String   @id @default(cuid())
+  guildId   String
+  kind      String
+  number    Int      @default(0)
+  userId    String?
+  status    String?
+  data      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([guildId, kind])
+  @@index([kind, status])
+}

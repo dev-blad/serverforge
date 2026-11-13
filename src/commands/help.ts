@@ -58,6 +58,27 @@ export const helpCommand: SlashCommand = {
         features.push(
           '🎫 Members open private tickets from the support panel; closing saves a transcript.',
         );
+      const shop: [string, string][] = [
+        ['status', '🚦 `/status` sets your shop to Open, Busy or Closed.'],
+        [
+          'vouches',
+          '⭐ Customers leave reviews with `/vouch submit`; see totals with `/vouch stats`.',
+        ],
+        ['announcements', '📢 Staff post branded announcements with `/announce`.'],
+        [
+          'store',
+          '🛒 `/product add` posts products with an Order button; track orders with `/order`.',
+        ],
+        ['giveaways', '🎉 Run giveaways with `/giveaway start`.'],
+        ['applications', '📝 Members apply to join the team from the Apply button.'],
+        ['reports', '📈 A weekly business report is posted for staff.'],
+        ['raidAlert', '🚨 Staff are alerted if lots of accounts join at once.'],
+        [
+          'backup',
+          '💾 `/backup create` snapshots roles and channels; `/backup restore` brings back deleted ones.',
+        ],
+      ];
+      for (const [id, line] of shop) if (status.modules.includes(id as never)) features.push(line);
       if (status.modules.includes('tixbot'))
         features.push(
           '🎫 Tickets run on TixBot — add it with the button in your staff channel and it sets itself up.',

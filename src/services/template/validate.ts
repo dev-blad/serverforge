@@ -284,6 +284,48 @@ export function validateSemantics(template: Template): string[] {
     }
   }
 
+  if (m.status) {
+    checkChannel(m.status.channel, 'modules.status.channel', TEXT_LIKE);
+    m.status.staffRoles.forEach((r) => checkRole(r, 'modules.status.staffRoles'));
+  }
+  if (m.vouches) {
+    checkChannel(m.vouches.channel, 'modules.vouches.channel', TEXT_LIKE);
+    m.vouches.staffRoles.forEach((r) => checkRole(r, 'modules.vouches.staffRoles'));
+  }
+  if (m.announcements) {
+    checkChannel(m.announcements.channel, 'modules.announcements.channel', TEXT_LIKE);
+    m.announcements.staffRoles.forEach((r) => checkRole(r, 'modules.announcements.staffRoles'));
+  }
+  if (m.store) {
+    checkChannel(m.store.catalogueChannel, 'modules.store.catalogueChannel', TEXT_LIKE);
+    checkChannel(m.store.ordersChannel, 'modules.store.ordersChannel', TEXT_LIKE);
+    m.store.staffRoles.forEach((r) => checkRole(r, 'modules.store.staffRoles'));
+    if (m.store.customerRole) checkRole(m.store.customerRole, 'modules.store.customerRole');
+    if (m.store.vipRole) checkRole(m.store.vipRole, 'modules.store.vipRole');
+  }
+  if (m.giveaways) {
+    checkChannel(m.giveaways.channel, 'modules.giveaways.channel', TEXT_LIKE);
+    m.giveaways.staffRoles.forEach((r) => checkRole(r, 'modules.giveaways.staffRoles'));
+    if (m.giveaways.pingRole) checkRole(m.giveaways.pingRole, 'modules.giveaways.pingRole');
+  }
+  if (m.applications) {
+    const a = m.applications;
+    checkChannel(a.panelChannel, 'modules.applications.panelChannel', TEXT_LIKE);
+    checkChannel(a.reviewChannel, 'modules.applications.reviewChannel', TEXT_LIKE);
+    a.staffRoles.forEach((r) => checkRole(r, 'modules.applications.staffRoles'));
+    if (a.acceptRole) checkRole(a.acceptRole, 'modules.applications.acceptRole');
+    const keys = new Set<string>();
+    for (const q of a.questions) {
+      if (keys.has(q.key)) errors.push(`modules.applications.questions[${q.key}]: duplicate key`);
+      keys.add(q.key);
+    }
+  }
+  if (m.reports) checkChannel(m.reports.channel, 'modules.reports.channel', TEXT_LIKE);
+  if (m.raidAlert) {
+    checkChannel(m.raidAlert.channel, 'modules.raidAlert.channel', TEXT_LIKE);
+    if (m.raidAlert.pingRole) checkRole(m.raidAlert.pingRole, 'modules.raidAlert.pingRole');
+  }
+
   // Placeholders
   const strings: { path: string; text: string }[] = [];
   collectStrings(template, '', strings);

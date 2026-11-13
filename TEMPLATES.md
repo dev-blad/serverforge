@@ -396,6 +396,24 @@ safe: once setup has succeeded, a re-run only fills in what's missing (empty set
 ticket types) and never overwrites changes made in the TixBot dashboard or posts a second menu. Per-type `category` needs TixBot Pro; on the free plan every
 ticket opens in `ticketCategory`. Requires `TIXBOT_API_URL` and `TIXBOT_API_KEY` on the bot.
 
+### Shop modules
+
+All of these store their data (vouches, orders, products…) in the ServerForge database and only
+work in servers whose template enables them. "Staff" means `staffRoles`, or anyone with **Manage
+Server**.
+
+| Module          | Config                                                                                                               | What it does                                                                                                                                                              |
+| --------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`        | `channel`, `staffRoles`, `renameChannel`                                                                             | `/status open\|busy\|closed [note]` edits the status message and prefixes the channel name with 🟢/🟡/🔴.                                                                 |
+| `vouches`       | `channel`, `staffRoles`, `cooldownHours`                                                                             | `/vouch submit` (1–5 stars + review), `/vouch stats`, `/vouch remove`. Completed orders DM a **Leave a vouch** button.                                                    |
+| `announcements` | `channel`, `staffRoles`                                                                                              | `/announce [ping] [channel]` opens a form and posts a branded embed.                                                                                                      |
+| `store`         | `catalogueChannel`, `ordersChannel`, `staffRoles`, `currency`, `customerRole`, `vipRole`, `vipAfterOrders`           | `/product add` cards with an **Order** button; `/order create/list/view`; a staff order board with Start/Complete/Cancel; customer DMs; Customer/VIP roles on completion. |
+| `giveaways`     | `channel`, `staffRoles`, `pingRole`                                                                                  | `/giveaway start/end/reroll` with an **Enter** button; winners drawn automatically.                                                                                       |
+| `applications`  | `panelChannel`, `reviewChannel`, `staffRoles`, `acceptRole`, `title`, `buttonLabel`, `panelEmbed`, `questions` (1–5) | An **Apply** button opens a form; answers go to staff with Accept/Deny; the applicant is DM'd.                                                                            |
+| `reports`       | `channel`, `day`, `hour` (UTC)                                                                                       | Weekly summary: members, orders, revenue, vouches, giveaways, applications.                                                                                               |
+| `raidAlert`     | `channel`, `pingRole`, `joins`, `seconds`                                                                            | Alerts staff when `joins` accounts arrive within `seconds`.                                                                                                               |
+| `backup`        | `keep`                                                                                                               | `/backup create/list/restore` — snapshots roles, categories, channels and permissions; restore only re-creates what's missing.                                            |
+
 ---
 
 ## Community features

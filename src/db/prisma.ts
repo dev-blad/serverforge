@@ -15,6 +15,9 @@ import type {
   ResourceRecord,
   SetupSessionRecord,
   TicketRecord,
+  FeatureRecord,
+  RecordFilter,
+  RecordKind,
 } from './types.js';
 import type { ModuleId } from '../services/template/schema.js';
 
@@ -101,6 +104,20 @@ const toSession = (r: PrismaSession): SetupSessionRecord => ({
 const toTicket = (r: PrismaTicket): TicketRecord => ({
   ...r,
   status: r.status as TicketRecord['status'],
+});
+
+type PrismaRecordRow = Awaited<ReturnType<PrismaClient['record']['findFirstOrThrow']>>;
+const toRecord = <T>(r: PrismaRecordRow): FeatureRecord<T> => ({
+  ...r,
+  kind: r.kind as RecordKind,
+  data: JSON.parse(r.data) as T,
+});
+const recordWhere = (f: RecordFilter = {}) => ({
+  ...(f.status !== undefined
+    ? { status: Array.isArray(f.status) ? { in: f.status } : f.status }
+    : {}),
+  ...(f.userId !== undefined ? { userId: f.userId } : {}),
+  ...(f.since ? { createdAt: { gte: f.since } } : {}),
 });
 
 export function createPrismaDatabase(client: PrismaClient): Database {
@@ -283,6 +300,61 @@ export function createPrismaDatabase(client: PrismaClient): Database {
           where: { id },
           data: { status: 'closed', closedBy, closedAt: at },
         });
+      },
+    },
+    records: {
+      create: async (input) => {
+        // Numbering per guild+kind; a transaction keeps two creates from taking the same number.
+        const row = await client.$transaction(async (tx) => {
+          const max = await tx.record.aggregate({
+            where: { guildId: input.guildId, kind: input.kind },
+            _max: { number: true },
+          });
+          return tx.record.create({
+            data: {
+              guildId: input.guildId,
+              kind: input.kind,
+              number: (max._max.number ?? 0) + 1,
+              userId: input.userId ?? null,
+              status: input.status ?? null,
+              data: JSON.stringify(input.data),
+            },
+          });
+        });
+        return toRecord(row);
+      },
+      get: async (id) => {
+        const r = await client.record.findUnique({ where: { id } });
+        return r ? toRecord(r) : null;
+      },
+      findByNumber: async (guildId, kind, number) => {
+        const r = await client.record.findFirst({ where: { guildId, kind, number } });
+        return r ? toRecord(r) : null;
+      },
+      update: async (id, patch) =>
+        toRecord(
+          await client.record.update({
+            where: { id },
+            data: {
+              ...(patch.status !== undefined ? { status: patch.status } : {}),
+              ...(patch.data !== undefined ? { data: JSON.stringify(patch.data) } : {}),
+            },
+          }),
+        ),
+      list: async (guildId, kind, filter = {}) =>
+        (
+          await client.record.findMany({
+            where: { guildId, kind, ...recordWhere(filter) },
+            orderBy: [{ createdAt: 'desc' }, { number: 'desc' }],
+            ...(filter.limit ? { take: filter.limit } : {}),
+          })
+        ).map((r) => toRecord(r)),
+      count: (guildId, kind, filter = {}) =>
+        client.record.count({ where: { guildId, kind, ...recordWhere(filter) } }),
+      listByStatus: async (kind, status) =>
+        (await client.record.findMany({ where: { kind, status } })).map((r) => toRecord(r)),
+      delete: async (id) => {
+        await client.record.delete({ where: { id } }).catch(() => undefined);
       },
     },
   };

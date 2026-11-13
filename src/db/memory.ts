@@ -9,6 +9,8 @@ import type {
   ResourceRecord,
   SetupSessionRecord,
   TicketRecord,
+  FeatureRecord,
+  RecordFilter,
 } from './types.js';
 
 /**
@@ -23,7 +25,19 @@ export function createMemoryDatabase(): Database & { dump(): Record<string, unkn
   const runs = new Map<string, BuildRunRecord>();
   const sessions = new Map<string, SetupSessionRecord>();
   const tickets = new Map<string, TicketRecord>();
+  const records = new Map<string, FeatureRecord>();
   const clone = <T>(v: T): T => structuredClone(v);
+  const matches = (r: FeatureRecord, f: RecordFilter = {}) => {
+    if (f.status !== undefined) {
+      const wanted = Array.isArray(f.status) ? f.status : [f.status];
+      if (!wanted.includes(r.status ?? '')) return false;
+    }
+    if (f.userId !== undefined && r.userId !== f.userId) return false;
+    if (f.since && r.createdAt < f.since) return false;
+    return true;
+  };
+  const newestFirst = (a: FeatureRecord, b: FeatureRecord) =>
+    b.createdAt.getTime() - a.createdAt.getTime() || b.number - a.number;
 
   return {
     dump: () => ({
@@ -34,6 +48,7 @@ export function createMemoryDatabase(): Database & { dump(): Record<string, unkn
       runs: [...runs.values()],
       sessions: [...sessions.values()],
       tickets: [...tickets.values()],
+      records: [...records.values()],
     }),
     close: () => Promise.resolve(),
 
@@ -244,6 +259,65 @@ export function createMemoryDatabase(): Database & { dump(): Record<string, unkn
       async close(id, closedBy, at) {
         const r = tickets.get(id);
         if (r) Object.assign(r, { status: 'closed', closedBy, closedAt: at });
+      },
+    },
+    records: {
+      async create(input) {
+        const number =
+          [...records.values()]
+            .filter((r) => r.guildId === input.guildId && r.kind === input.kind)
+            .reduce((max, r) => Math.max(max, r.number), 0) + 1;
+        const now = new Date();
+        const record: FeatureRecord = {
+          id: randomUUID(),
+          guildId: input.guildId,
+          kind: input.kind,
+          number,
+          userId: input.userId ?? null,
+          status: input.status ?? null,
+          data: clone(input.data) as Record<string, unknown>,
+          createdAt: now,
+          updatedAt: now,
+        };
+        records.set(record.id, record);
+        return clone(record) as never;
+      },
+      async get(id) {
+        const r = records.get(id);
+        return (r ? clone(r) : null) as never;
+      },
+      async findByNumber(guildId, kind, number) {
+        const r = [...records.values()].find(
+          (x) => x.guildId === guildId && x.kind === kind && x.number === number,
+        );
+        return (r ? clone(r) : null) as never;
+      },
+      async update(id, patch) {
+        const r = records.get(id);
+        if (!r) throw new Error(`Record ${id} not found`);
+        if (patch.status !== undefined) r.status = patch.status;
+        if (patch.data !== undefined) r.data = clone(patch.data) as Record<string, unknown>;
+        r.updatedAt = new Date();
+        return clone(r) as never;
+      },
+      async list(guildId, kind, filter = {}) {
+        const out = [...records.values()]
+          .filter((r) => r.guildId === guildId && r.kind === kind && matches(r, filter))
+          .sort(newestFirst);
+        return clone(filter.limit ? out.slice(0, filter.limit) : out) as never;
+      },
+      async count(guildId, kind, filter = {}) {
+        return [...records.values()].filter(
+          (r) => r.guildId === guildId && r.kind === kind && matches(r, filter),
+        ).length;
+      },
+      async listByStatus(kind, status) {
+        return clone(
+          [...records.values()].filter((r) => r.kind === kind && r.status === status),
+        ) as never;
+      },
+      async delete(id) {
+        records.delete(id);
       },
     },
   };

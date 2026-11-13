@@ -306,6 +306,113 @@ export const tixbotModuleSchema = z.strictObject({
   ticketTypes: z.array(tixbotTicketTypeSchema).min(1).max(25),
 });
 
+const staffRolesSchema = z.array(keySchema).min(1);
+
+/** `/status open|busy|closed` updates a status message (and optionally the channel name). */
+export const statusModuleSchema = z.strictObject({
+  ...moduleBase,
+  channel: keySchema,
+  /** Roles allowed to change the status (people with Manage Server always can). */
+  staffRoles: staffRolesSchema,
+  /** Prefix the channel name with 🟢 / 🟡 / 🔴. */
+  renameChannel: z.boolean().default(true),
+});
+
+/** `/vouch` — customers leave a star rating and review, posted to a channel. */
+export const vouchesModuleSchema = z.strictObject({
+  ...moduleBase,
+  channel: keySchema,
+  staffRoles: staffRolesSchema,
+  /** One vouch per customer per this many hours (0 = no limit). */
+  cooldownHours: z
+    .number()
+    .int()
+    .min(0)
+    .max(24 * 30)
+    .default(24),
+});
+
+/** `/announce` — staff post branded announcements, optionally pinging a role. */
+export const announcementsModuleSchema = z.strictObject({
+  ...moduleBase,
+  channel: keySchema,
+  staffRoles: staffRolesSchema,
+});
+
+/** Product catalogue with Order buttons, plus order tracking (`/product`, `/order`). */
+export const storeModuleSchema = z.strictObject({
+  ...moduleBase,
+  /** Where product cards are posted. */
+  catalogueChannel: keySchema,
+  /** Staff-only order board. */
+  ordersChannel: keySchema,
+  staffRoles: staffRolesSchema,
+  currency: z.string().min(1).max(5).default('$'),
+  /** Given to a customer when their first order completes. */
+  customerRole: keySchema.optional(),
+  /** Given once a customer has this many completed orders. */
+  vipRole: keySchema.optional(),
+  vipAfterOrders: z.number().int().min(1).max(1000).default(5),
+});
+
+/** `/giveaway` with an Enter button; winners drawn automatically when it ends. */
+export const giveawaysModuleSchema = z.strictObject({
+  ...moduleBase,
+  channel: keySchema,
+  staffRoles: staffRolesSchema,
+  /** Role pinged when a giveaway starts. */
+  pingRole: keySchema.optional(),
+});
+
+export const applicationQuestionSchema = z.strictObject({
+  key: keySchema,
+  /** Shown above the input (Discord limit 45). */
+  label: z.string().min(1).max(45),
+  placeholder: z.string().max(100).optional(),
+  style: z.enum(['short', 'paragraph']).default('paragraph'),
+  required: z.boolean().default(true),
+});
+
+/** An "Apply" button opening a form; answers go to staff to accept or deny. */
+export const applicationsModuleSchema = z.strictObject({
+  ...moduleBase,
+  panelChannel: keySchema,
+  reviewChannel: keySchema,
+  staffRoles: staffRolesSchema,
+  /** Role given to accepted applicants. */
+  acceptRole: keySchema.optional(),
+  /** Form title (Discord limit 45). */
+  title: z.string().min(1).max(45).default('Staff application'),
+  buttonLabel: z.string().min(1).max(80).default('Apply'),
+  panelEmbed: embedSchema,
+  questions: z.array(applicationQuestionSchema).min(1).max(5),
+});
+
+/** A weekly summary for staff: members, orders, revenue and vouches. */
+export const reportsModuleSchema = z.strictObject({
+  ...moduleBase,
+  channel: keySchema,
+  day: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']).default('mon'),
+  /** Hour of the day, UTC. */
+  hour: z.number().int().min(0).max(23).default(9),
+});
+
+/** Alerts staff when lots of accounts join in a short time. */
+export const raidAlertModuleSchema = z.strictObject({
+  ...moduleBase,
+  channel: keySchema,
+  pingRole: keySchema.optional(),
+  joins: z.number().int().min(3).max(500).default(8),
+  seconds: z.number().int().min(10).max(3600).default(60),
+});
+
+/** `/backup` — snapshot roles, channels and permissions; restore anything deleted. */
+export const backupModuleSchema = z.strictObject({
+  ...moduleBase,
+  /** How many snapshots to keep. */
+  keep: z.number().int().min(1).max(20).default(5),
+});
+
 export const modulesSchema = z
   .strictObject({
     autoRole: autoRoleModuleSchema.optional(),
@@ -316,6 +423,15 @@ export const modulesSchema = z
     tickets: ticketsModuleSchema.optional(),
     memberStats: memberStatsModuleSchema.optional(),
     tixbot: tixbotModuleSchema.optional(),
+    status: statusModuleSchema.optional(),
+    vouches: vouchesModuleSchema.optional(),
+    announcements: announcementsModuleSchema.optional(),
+    store: storeModuleSchema.optional(),
+    giveaways: giveawaysModuleSchema.optional(),
+    applications: applicationsModuleSchema.optional(),
+    reports: reportsModuleSchema.optional(),
+    raidAlert: raidAlertModuleSchema.optional(),
+    backup: backupModuleSchema.optional(),
   })
   .default({});
 
@@ -330,6 +446,15 @@ export const MODULE_IDS: ModuleId[] = [
   'tickets',
   'memberStats',
   'tixbot',
+  'status',
+  'vouches',
+  'announcements',
+  'store',
+  'giveaways',
+  'applications',
+  'reports',
+  'raidAlert',
+  'backup',
 ];
 export type AutoRoleConfig = z.infer<typeof autoRoleModuleSchema>;
 export type VerificationConfig = z.infer<typeof verificationModuleSchema>;

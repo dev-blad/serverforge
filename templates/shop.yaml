@@ -8,6 +8,8 @@
 #   • tickets run on TixBot: staff get an "Add TixBot" button and setup steps
 #     (Pro sets TixBot up automatically — see shop-pro.yaml)
 #   • every empty channel gets a short tip on what to post there
+#   • @everyone sees channels through its server permission (not per-channel allows), so
+#     Pro's verification gate can hide everything by removing that one permission
 # ─────────────────────────────────────────────────────────────────────────────
 id: shop
 name: Shop
@@ -97,7 +99,7 @@ categories:
     name: Information
     overwrites:
       - role: everyone
-        allow: [ViewChannel, ReadMessageHistory]
+        allow: [ReadMessageHistory]
         deny:
           [
             SendMessages,
@@ -131,7 +133,7 @@ categories:
     name: Community
     overwrites:
       - role: everyone
-        allow: [ViewChannel, SendMessages, AddReactions, ReadMessageHistory, UseExternalEmojis]
+        allow: [SendMessages, AddReactions, ReadMessageHistory, UseExternalEmojis]
         deny:
           [
             EmbedLinks,
@@ -183,7 +185,6 @@ categories:
           - role: everyone
             allow:
               [
-                ViewChannel,
                 SendMessages,
                 AddReactions,
                 ReadMessageHistory,
@@ -200,7 +201,7 @@ categories:
         topic: 'Our products and packages — open a Sales Enquiry to order.'
         overwrites:
           - role: everyone
-            allow: [ViewChannel, ReadMessageHistory, AddReactions, UseExternalEmojis]
+            allow: [ReadMessageHistory, AddReactions, UseExternalEmojis]
             deny: [SendMessages, CreatePublicThreads, CreatePrivateThreads, SendMessagesInThreads]
           - role: support-agent
             allow: [SendMessages, EmbedLinks, AttachFiles, ManageMessages]
@@ -213,7 +214,7 @@ categories:
         topic: 'Guides, tips and longer posts from the team.'
         overwrites:
           - role: everyone
-            allow: [ViewChannel, ReadMessageHistory, AddReactions, UseExternalEmojis]
+            allow: [ReadMessageHistory, AddReactions, UseExternalEmojis]
             deny: [SendMessages, CreatePublicThreads, CreatePrivateThreads, SendMessagesInThreads]
           - role: support-agent
             allow: [SendMessages, EmbedLinks, AttachFiles, ManageMessages]
@@ -227,7 +228,7 @@ categories:
     name: Support
     overwrites:
       - role: everyone
-        allow: [ViewChannel, ReadMessageHistory]
+        allow: [ReadMessageHistory]
         deny:
           [
             SendMessages,

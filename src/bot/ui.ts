@@ -23,6 +23,15 @@ export const MODULE_LABELS: Record<ModuleId, string> = {
   tickets: '🎫 Tickets & transcripts',
   memberStats: '📊 Member count stats',
   tixbot: '🎫 TixBot tickets (auto setup)',
+  status: '🚦 Status board',
+  vouches: '⭐ Vouches & reviews',
+  announcements: '📢 Branded announcements',
+  store: '🛒 Product catalogue & order tracking',
+  giveaways: '🎉 Giveaways',
+  applications: '📝 Staff applications',
+  reports: '📈 Weekly business report',
+  raidAlert: '🚨 Raid alerts',
+  backup: '💾 Server backup & restore',
 };
 
 export function errorEmbed(

@@ -187,6 +187,62 @@ export interface TicketRepository {
   close(id: string, closedBy: string, at: Date): Promise<void>;
 }
 
+/** What a feature record is. */
+export type RecordKind =
+  'vouch' | 'product' | 'order' | 'giveaway' | 'application' | 'backup' | 'report';
+
+/** A feature data row (vouch, order, product…). `data` is free-form JSON for that kind. */
+export interface FeatureRecord<T = Record<string, unknown>> {
+  id: string;
+  guildId: string;
+  kind: RecordKind;
+  /** Per-guild, per-kind running number (Order #12, Vouch #40…). */
+  number: number;
+  userId: string | null;
+  status: string | null;
+  data: T;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface RecordFilter {
+  status?: string | string[];
+  userId?: string;
+  /** Only records created at or after this time. */
+  since?: Date;
+}
+
+export interface RecordRepository {
+  /** Creates a record; `number` is assigned automatically (1, 2, 3… per guild and kind). */
+  create<T extends object>(data: {
+    guildId: string;
+    kind: RecordKind;
+    userId?: string | null;
+    status?: string | null;
+    data: T;
+  }): Promise<FeatureRecord<T>>;
+  get<T extends object>(id: string): Promise<FeatureRecord<T> | null>;
+  findByNumber<T extends object>(
+    guildId: string,
+    kind: RecordKind,
+    number: number,
+  ): Promise<FeatureRecord<T> | null>;
+  update<T extends object>(
+    id: string,
+    patch: { status?: string | null; data?: T },
+  ): Promise<FeatureRecord<T>>;
+  /** Newest first. */
+  list<T extends object>(
+    guildId: string,
+    kind: RecordKind,
+    filter?: RecordFilter & { limit?: number },
+  ): Promise<FeatureRecord<T>[]>;
+  count(guildId: string, kind: RecordKind, filter?: RecordFilter): Promise<number>;
+  /** Across all guilds, e.g. running giveaways (used by schedulers). */
+  listByStatus<T extends object>(kind: RecordKind, status: string): Promise<FeatureRecord<T>[]>;
+  delete(id: string): Promise<void>;
+}
+
 export interface Database {
   licenses: LicenseRepository;
   guilds: GuildRepository;
@@ -195,5 +251,6 @@ export interface Database {
   runs: BuildRunRepository;
   sessions: SetupSessionRepository;
   tickets: TicketRepository;
+  records: RecordRepository;
   close(): Promise<void>;
 }

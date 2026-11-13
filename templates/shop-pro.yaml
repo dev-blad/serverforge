@@ -1,15 +1,108 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Shop Pro — everything in Shop (Starter), plus:
-#   • TixBot set up automatically: add TixBot and ServerForge configures roles,
-#     categories, transcripts, ticket types, branded ticket messages and the menu
+#   • Verification gate: new members see only #verify until they click Verify
+#   • AutoMod pack: invite links, scam links, mass pings, spam, slurs
+#   • Status board: /status open|busy|closed updates #status (and its name)
+#   • Vouches: /vouch with star ratings, posted to #vouches with a running average
+#   • Branded announcements: /announce (multi-line form, optional role ping)
+#   • Self-assign ping roles (Restocks, Giveaways, Announcements) and a member counter
+#   • Tickets: add TixBot and it's set up automatically (partner integration)
 # Only the differences from Shop are listed here (see TEMPLATES.md → Inheritance).
 # ─────────────────────────────────────────────────────────────────────────────
 id: shop-pro
 extends: shop
 name: Shop Pro
 tier: pro
-version: 1
-description: Everything in Shop, plus a ticket system that sets itself up — add TixBot and the ticket types, branded ticket messages, staff roles, categories, transcripts and ticket menu are configured automatically.
+version: 2
+description: Everything in Shop, plus a verification gate, an AutoMod pack, a live status board, vouches with star ratings, branded announcements, ping roles, a member counter and automatic ticket setup.
+
+# Verification gate: @everyone no longer sees channels — only #verify. Member carries ViewChannel.
+everyone:
+  permissions:
+    - CreateInstantInvite
+    - SendMessages
+    - EmbedLinks
+    - AttachFiles
+    - AddReactions
+    - ReadMessageHistory
+    - UseExternalEmojis
+    - UseExternalStickers
+    - UseApplicationCommands
+    - ChangeNickname
+    - Connect
+    - Speak
+    - Stream
+    - UseVAD
+    - CreatePublicThreads
+    - SendMessagesInThreads
+    - SendVoiceMessages
+    - SendPolls
+
+roles:
+  # Staff always see everything, even before verifying.
+  - key: team
+    permissions: [ViewChannel]
+  - key: support-agent
+    permissions: [ViewChannel]
+  - key: member
+    permissions: [ViewChannel]
+  - key: ping-announcements
+    name: Announcement Pings
+    color: '#95A5A6'
+    mentionable: true
+    after: member
+  - key: ping-restocks
+    name: Restock Pings
+    color: '#95A5A6'
+    mentionable: true
+    after: ping-announcements
+  - key: ping-giveaways
+    name: Giveaway Pings
+    color: '#95A5A6'
+    mentionable: true
+    after: ping-restocks
+
+categories:
+  - key: start
+    name: Start Here
+    before: information
+    overwrites:
+      - role: everyone
+        allow: [ViewChannel, ReadMessageHistory]
+        deny: [SendMessages, AddReactions, CreatePublicThreads, CreatePrivateThreads]
+      # Verified members don't need to see the gate any more.
+      - role: member
+        deny: [ViewChannel]
+    channels:
+      - key: verify
+        name: ﹒ᴠᴇʀɪꜰʏ
+        topic: 'Click Verify to unlock {{serverName}}.'
+
+  - key: information
+    channels:
+      - key: member-count
+        name: '👥 Members: 0'
+        type: voice
+        before: welcome
+      - key: get-roles
+        name: ﹒ɢᴇᴛ-ʀᴏʟᴇs
+        topic: 'Choose which pings you want — restocks, giveaways and announcements.'
+        after: status
+
+  - key: community
+    channels:
+      - key: vouches
+        name: ﹒ᴠᴏᴜᴄʜᴇs
+        topic: 'Customer reviews — leave yours with /vouch submit.'
+        after: showcase
+        overwrites:
+          - role: everyone
+            allow: [ReadMessageHistory, AddReactions, UseExternalEmojis]
+            deny: [SendMessages, CreatePublicThreads, CreatePrivateThreads, SendMessagesInThreads]
+          - role: team
+            allow: [SendMessages, EmbedLinks, AttachFiles, ManageMessages]
+          - role: bot
+            allow: [SendMessages, EmbedLinks, AttachFiles, ManageMessages]
 
 messages:
   # The tixbot module posts its own "Add TixBot / Set up tickets now" embed and the ticket menu.
@@ -17,8 +110,148 @@ messages:
     remove: true
   - key: tip-support-info
     remove: true
+  # The status board replaces the status tip.
+  - key: tip-status
+    remove: true
+  - key: tip-announcements
+    embeds:
+      - title: '📢 Announcements — what goes here'
+        color: '{{brandColor}}'
+        description: |-
+          Use this channel for anything every member should see:
+
+          › New products, restocks and limited offers
+          › Sales, discount codes and giveaways
+          › Opening hours, holidays and delivery delays
+
+          **Staff:** post with `/announce` — it opens a form for a branded, multi-line announcement and can ping {{role:ping-announcements}} or {{role:ping-restocks}}.
+        footer: '📌 Setup tip from ServerForge — delete this message once the channel is set up.'
+  - key: tip-vouches
+    channel: vouches
+    embeds:
+      - title: '⭐ Vouches — how it works'
+        color: '{{brandColor}}'
+        description: |-
+          Happy customers leave a star rating and review with `/vouch submit`. Each vouch is posted here with a running average — great social proof for new customers.
+
+          › Members can vouch once a day
+          › Staff can remove a vouch with `/vouch remove`
+          › Anyone can see the totals with `/vouch stats`
+        footer: '📌 Setup tip from ServerForge — delete this message once the channel is set up.'
+  - key: pro-commands
+    channel: staff-chat
+    embeds:
+      - title: '🧰 Your Pro staff commands'
+        color: '{{brandColor}}'
+        description: |-
+          `/status` — set 🟢 Open, 🟡 Busy or 🔴 Closed (updates {{channel:status}})
+          `/announce` — post a branded announcement, optionally pinging a role
+          `/vouch stats` · `/vouch remove` — see ratings and remove spam vouches
+
+          Verification, AutoMod, ping roles and the member counter run automatically. Moderation alerts go to {{channel:bot-logs}}.
 
 modules:
+  # Verification gives the Member role instead of giving it on join.
+  autoRole:
+    memberRole: null
+
+  verification:
+    channel: verify
+    verifiedRole: member
+    buttonLabel: '✅ Verify'
+    verifyExistingMembers: true
+    embed:
+      title: 'Welcome to {{serverName}}!'
+      color: '{{brandColor}}'
+      description: |-
+        To keep the community safe from spam and raids, please confirm you're human.
+
+        Click **Verify** below to unlock the shop, support and community channels.
+
+  buttonRoles:
+    panels:
+      - key: pings
+        channel: get-roles
+        embed:
+          title: '🔔 Notifications'
+          color: '{{brandColor}}'
+          description: |-
+            Choose what you want to be pinged for. Click again to turn it off.
+
+            📣 **Announcements** — news and big updates
+            📦 **Restocks** — when products are back in stock
+            🎉 **Giveaways** — free stuff!
+        buttons:
+          - {
+              key: announcements,
+              role: ping-announcements,
+              label: Announcements,
+              emoji: '📣',
+              style: primary,
+            }
+          - { key: restocks, role: ping-restocks, label: Restocks, emoji: '📦', style: primary }
+          - { key: giveaways, role: ping-giveaways, label: Giveaways, emoji: '🎉', style: primary }
+
+  automod:
+    rules:
+      - key: preset-filter
+        name: 'Shop: Slurs & sexual content'
+        type: keywordPreset
+        presets: [slurs, sexualContent]
+        customMessage: That message was blocked by the server's content filter.
+        alertChannel: bot-logs
+        exemptRoles: [team, support-agent]
+      - key: spam
+        name: 'Shop: Spam'
+        type: spam
+        alertChannel: bot-logs
+      - key: mention-spam
+        name: 'Shop: Mass pings'
+        type: mentionSpam
+        mentionLimit: 5
+        timeoutSeconds: 600
+        alertChannel: bot-logs
+        exemptRoles: [team, support-agent]
+      - key: invite-links
+        name: 'Shop: Invite links'
+        type: keyword
+        regex: ['(discord\.gg|discord(app)?\.com/invite)/[a-zA-Z0-9-]+']
+        customMessage: Invite links aren't allowed here.
+        alertChannel: bot-logs
+        exemptRoles: [team, support-agent]
+      - key: scam-links
+        name: 'Shop: Scam links'
+        type: keyword
+        keywords:
+          - '*free nitro*'
+          - '*nitro giveaway*'
+          - '*steamcommunity.ru*'
+          - '*discord-nitro*'
+          - '*dlscord*'
+          - '*discordgift*'
+          - '*@everyone free*'
+        customMessage: That looks like a scam link, so it was blocked.
+        alertChannel: bot-logs
+        timeoutSeconds: 3600
+        exemptRoles: [team]
+
+  memberStats:
+    channel: member-count
+    format: '👥 Members: {count}'
+
+  status:
+    channel: status
+    staffRoles: [team, support-agent]
+
+  vouches:
+    channel: vouches
+    staffRoles: [team, support-agent]
+    cooldownHours: 24
+
+  announcements:
+    channel: announcements
+    staffRoles: [team]
+
   tixbot:
     setupChannel: staff-chat
     panelChannel: support-info

@@ -8,10 +8,17 @@ import { generateKey } from '../../src/services/license/keygen.js';
 describe('command definitions', () => {
   it('registers the expected commands with the right scopes', () => {
     expect(commands.map((c) => `${c.data.name}:${c.scope}`).sort()).toEqual([
+      'announce:global',
+      'backup:global',
       'forge:global',
+      'giveaway:global',
       'help:global',
       'keys:admin',
+      'order:global',
+      'product:global',
       'setup:global',
+      'status:global',
+      'vouch:global',
     ]);
     const setup = commands.find((c) => c.data.name === 'setup')!;
     expect(setup.data.options?.map((o) => o.name)).toEqual(['key', 'dry-run']);
@@ -25,7 +32,20 @@ describe('command definitions', () => {
       ...moduleRuntimes.flatMap((r) => r.components?.map((h) => h.area) ?? []),
     ];
     expect(new Set(areas).size).toBe(areas.length);
-    expect(areas.sort()).toEqual(['br', 'keys', 'setup', 'ticket', 'tixbot', 'verify']);
+    expect(areas.sort()).toEqual([
+      'announce',
+      'apply',
+      'backup',
+      'br',
+      'give',
+      'keys',
+      'setup',
+      'store',
+      'ticket',
+      'tixbot',
+      'verify',
+      'vouch',
+    ]);
   });
 });
 
